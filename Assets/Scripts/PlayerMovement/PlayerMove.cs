@@ -28,7 +28,6 @@ public class PlayerMove : MonoBehaviour
     {
         float horizontalInput = Input.GetAxisRaw("Horizontal");
         float verticalInput = Input.GetAxisRaw("Vertical");
-
         Vector3 moveDirection = new Vector3(horizontalInput, 0f, verticalInput).normalized;
 
         float currentSpeed = walkSpeed;
@@ -39,11 +38,12 @@ public class PlayerMove : MonoBehaviour
 
         if (moveDirection != Vector3.zero)
         {
-            rb.MovePosition(rb.position + moveDirection * currentSpeed * Time.fixedDeltaTime);
+            rb.MovePosition(rb.position + moveDirection * currentSpeed * Time.deltaTime);
         }
 
         if (Input.GetKeyDown(KeyCode.Space) && isGrounded)
         {
+            rb.velocity = new Vector3(rb.velocity.x, 0, rb.velocity.z);
             rb.AddForce(Vector3.up * jumpForce, ForceMode.Impulse);
         }
     }
@@ -51,5 +51,10 @@ public class PlayerMove : MonoBehaviour
     void FixedUpdate()
     {
         isGrounded = Physics.CheckSphere(groundCheck.position, groundCheckRadius, groundLayer);
+    }
+    void OnDrawGizmos()
+    {
+        Gizmos.color = Color.red;
+        Gizmos.DrawWireSphere(groundCheck.position, groundCheckRadius);
     }
 }
