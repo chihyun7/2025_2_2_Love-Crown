@@ -1,20 +1,19 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class NPC : MonoBehaviour
 {
     public Dialogue dialogue;
+    public int likability = 0;
     private bool playerIsClose = false;
 
     public void TriggerDialogue()
     {
-        FindObjectOfType<DialogueManager>().StartDialogue(dialogue);
+        FindObjectOfType<DialogueManager>().StartDialogue(this);
     }
 
     void Update()
     {
-        if (playerIsClose && Input.GetKeyDown(KeyCode.E))
+        if (playerIsClose && Input.GetKeyDown(KeyCode.E) && !DialogueManager.IsDialogueActive)
         {
             TriggerDialogue();
         }
