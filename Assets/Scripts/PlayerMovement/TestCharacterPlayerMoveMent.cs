@@ -1,4 +1,4 @@
-using System.Collections;
+ï»¿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Photon.Pun;
@@ -12,7 +12,6 @@ public class TestCharacterPlayerMoveMent : MonoBehaviourPunCallbacks, IPunObserv
     public float characterPlayerRoateSpeed = 10.0f;
 
     public Camera characterPlayerCamera;
-    private CharacterController characterPlaeyrCharacterController;
     //private PhotonView photonView;
 
     private Vector3 networkPosition;
@@ -20,44 +19,40 @@ public class TestCharacterPlayerMoveMent : MonoBehaviourPunCallbacks, IPunObserv
 
     private bool isMoving = false;
     private bool networkIsMoving = false;
-    private void Awake()
-    {
-        //if (!photonView) photonView = GetComponent<PhotonView>();
-        characterPlaeyrCharacterController = GetComponent<CharacterController>();
-    }
 
     private void Start()
     {
+
         if (characterPlayerCamera == null)
         {
             Camera characterPlayerCamera = GetComponentInChildren<Camera>(true);
 
             if (characterPlayerCamera == null)
             {
-                Debug.LogError("PlayerPrefab ³»ºÎ¿¡ 'PlayerCamera' ¿ÀºêÁ§Æ®¸¦ Ã£À» ¼ö ¾ø½À´Ï´Ù! Ä«¸Ş¶ó ¼³Á¤À» È®ÀÎÇÏ¼¼¿ä.");
+                Debug.LogError("PlayerPrefab ë‚´ë¶€ì— 'PlayerCamera' ì˜¤ë¸Œì íŠ¸ë¥¼ ì°¾ì„ ìˆ˜ ì—†ìŠµë‹ˆë‹¤! ì¹´ë©”ë¼ ì„¤ì •ì„ í™•ì¸í•˜ì„¸ìš”.");
                 return;
             }
 
 
 
         }
-        if (photonView.IsMine)      // ³» Ä³¸¯ÅÍÀÎÁö È®ÀÎ
+        if (photonView.IsMine)      // ë‚´ ìºë¦­í„°ì¸ì§€ í™•ì¸
         {
-            characterPlayerCamera.gameObject.SetActive(true);                    // ÀÌÁ¦ ³ªÀÇ 1ÀÎÄª ½ÃÁ¡
-            Debug.Log("³»°¡ Á¶ÀÛÇÒ ¼ö ÀÖ´Â ÇÃ·¹ÀÌ¾î (1ÀÎÄª ½ÃÁ¡ È°¼ºÈ­).");
+            characterPlayerCamera.gameObject.SetActive(true);                    // ì´ì œ ë‚˜ì˜ 1ì¸ì¹­ ì‹œì 
+            Debug.Log("ë‚´ê°€ ì¡°ì‘í•  ìˆ˜ ìˆëŠ” í”Œë ˆì´ì–´ (1ì¸ì¹­ ì‹œì  í™œì„±í™”).");
 
         }
 
         else
         {
-            characterPlayerCamera.gameObject.SetActive(false);                    // ÀÌÁ¦ ³ªÀÇ 1ÀÎÄª ½ÃÁ¡
-            Debug.Log("´Ù¸¥ ÇÃ·¹ÀÌ¾î Ä«¸Ş¶ó ¹× Á¶ÀÛ ºñÈ°¼ºÈ­.");
+            characterPlayerCamera.gameObject.SetActive(false);                    // ì´ì œ ë‚˜ì˜ 1ì¸ì¹­ ì‹œì 
+            Debug.Log("ë‹¤ë¥¸ í”Œë ˆì´ì–´ ì¹´ë©”ë¼ ë° ì¡°ì‘ ë¹„í™œì„±í™”.");
         }
     }
 
     private void Update()
     {
-        if (!photonView.IsMine) return;                         // ³» °ÍÀÌ ¾Æ´Ï¶ó¸é Áï½Ã ÇÔ¼ö Á¾·á
+        if (!photonView.IsMine) return;                         // ë‚´ ê²ƒì´ ì•„ë‹ˆë¼ë©´ ì¦‰ì‹œ í•¨ìˆ˜ ì¢…ë£Œ
 
         isMoving = CharacterPlayerMoveMent();
 
@@ -67,32 +62,32 @@ public class TestCharacterPlayerMoveMent : MonoBehaviourPunCallbacks, IPunObserv
     {
         if (stream.IsWriting)
         {
-            // 1. µ¥ÀÌÅÍ ¼Û½Å (³»°¡ ¿òÁ÷ÀÌ´Â ÇÃ·¹ÀÌ¾îÀÏ ¶§)
+            // 1. ë°ì´í„° ì†¡ì‹  (ë‚´ê°€ ì›€ì§ì´ëŠ” í”Œë ˆì´ì–´ì¼ ë•Œ)
             stream.SendNext(transform.position);
             stream.SendNext(transform.rotation);
             stream.SendNext(isMoving);
         }
         else
         {
-            // 2. µ¥ÀÌÅÍ ¼ö½Å (´Ù¸¥ ÇÃ·¹ÀÌ¾îÀÏ ¶§)
-            // ³×Æ®¿öÅ©¸¦ ÅëÇØ ¹ŞÀº µ¥ÀÌÅÍ¸¦ ÀúÀå.
+            // 2. ë°ì´í„° ìˆ˜ì‹  (ë‹¤ë¥¸ í”Œë ˆì´ì–´ì¼ ë•Œ)
+            // ë„¤íŠ¸ì›Œí¬ë¥¼ í†µí•´ ë°›ì€ ë°ì´í„°ë¥¼ ì €ì¥.
 
             networkPosition = (Vector3)stream.ReceiveNext();
             networkRotation = (Quaternion)stream.ReceiveNext();
             networkIsMoving = (bool)stream.ReceiveNext();
 
-            // ÇÎÀÌ ³ôÀ» ¶§ º¸°£(Interpolation)À» À§ÇÑ Ãß°¡ ÀÛ¾÷ (¼±ÅÃ »çÇ×)
+            // í•‘ì´ ë†’ì„ ë•Œ ë³´ê°„(Interpolation)ì„ ìœ„í•œ ì¶”ê°€ ì‘ì—… (ì„ íƒ ì‚¬í•­)
             float lag = Mathf.Abs((float)(PhotonNetwork.Time - info.SentServerTime));
-            networkPosition += (Vector3)(networkPosition * lag); // °£´ÜÇÑ º¸°£ º¸Á¤
+            networkPosition += (Vector3)(networkPosition * lag); // ê°„ë‹¨í•œ ë³´ê°„ ë³´ì •
         }
     }
 
     private void LateUpdate()
     {
-        // ³» Ä³¸¯ÅÍ°¡ ¾Æ´Ò ¶§¸¸ ³×Æ®¿öÅ© À§Ä¡·Î ¾÷µ¥ÀÌÆ®ÇÕ´Ï´Ù.
+        // ë‚´ ìºë¦­í„°ê°€ ì•„ë‹ ë•Œë§Œ ë„¤íŠ¸ì›Œí¬ ìœ„ì¹˜ë¡œ ì—…ë°ì´íŠ¸í•©ë‹ˆë‹¤.
         if (!photonView.IsMine)
         {
-            // ºÎµå·¯¿î ¿òÁ÷ÀÓÀ» À§ÇØ º¸°£(Lerp) Àû¿ë
+            // ë¶€ë“œëŸ¬ìš´ ì›€ì§ì„ì„ ìœ„í•´ ë³´ê°„(Lerp) ì ìš©
             transform.position = Vector3.Lerp(transform.position, networkPosition, Time.deltaTime * characterPlayerRoateSpeed);
             transform.rotation = Quaternion.Slerp(transform.rotation, networkRotation, Time.deltaTime * characterPlayerRoateSpeed);
         }
@@ -113,10 +108,9 @@ public class TestCharacterPlayerMoveMent : MonoBehaviourPunCallbacks, IPunObserv
 
             Vector3 characterPlayerMove = characterPlayerDerection * currentSpeed * Time.deltaTime;
 
-            if (characterPlaeyrCharacterController != null)
-                characterPlaeyrCharacterController.Move(characterPlayerMove);
+            transform.position += characterPlayerMove;
 
-            // È¸Àü ·ÎÁ÷
+            // íšŒì „ ë¡œì§
             Quaternion characterPlayerRate = Quaternion.LookRotation(characterPlayerDerection);
             transform.rotation = Quaternion.Slerp(transform.rotation, characterPlayerRate, characterPlayerRoateSpeed * Time.deltaTime);
         }

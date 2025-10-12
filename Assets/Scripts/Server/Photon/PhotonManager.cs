@@ -14,6 +14,7 @@ public class PhotonManager : MonoBehaviourPunCallbacks
     public InputField createNameInput;
     public Text statusText;
 
+    public GameObject gamestartButton;
 
     private static PhotonManager instance;
 
@@ -136,7 +137,11 @@ public class PhotonManager : MonoBehaviourPunCallbacks
         statusText.text = $"현제 플레이어 : {PhotonNetwork.CurrentRoom.PlayerCount}명";
         if (statusText != null) statusText = null;
         if (createNameInput != null) createNameInput = null;
-        // 씬 로드를 요청 OnSceneLoaded 콜백이 이어받아 처리
+        if(gamestartButton != null) gamestartButton.gameObject.SetActive(true);
+    }
+
+    public void GameStartButton()
+    {
         PhotonNetwork.LoadLevel("GameScene");
     }
 
@@ -194,7 +199,7 @@ public class PhotonManager : MonoBehaviourPunCallbacks
         int playerIndex = PhotonNetwork.LocalPlayer.ActorNumber - 1;
         Vector3 spawnPos = PlayerSpawnManager.instance.GetSpawnPosition(playerIndex);
 
-        GameObject player = PhotonNetwork.Instantiate("PlayerPrefab", spawnPos, Quaternion.identity);
+        GameObject player = PhotonNetwork.Instantiate("Player", spawnPos, Quaternion.identity);
 
         if (player == null)
         {
