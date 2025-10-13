@@ -13,14 +13,14 @@ public class ConsoleManager : MonoBehaviour
 
     public PhotonManager photonManager;
 
-    #region console ¸í·É¾î ¸ñ·Ï
-    #region Á¶È¸ ¸í·É¾î
+    #region console ëª…ë ¹ì–´ ëª©ë¡
+    #region ì¡°íšŒ ëª…ë ¹ì–´
     private string ls = "ls";
     private string ls_room = "ls room";
     #endregion
 
-    #region ¼öÇà ¸í·É¾î
-    private string cat_GameScene_start = "cat GameScene start";
+    #region ìˆ˜í–‰ ëª…ë ¹ì–´
+    private string cat_GameScene_start = "cat GameScene";
     #endregion
 
     #endregion
@@ -35,15 +35,15 @@ public class ConsoleManager : MonoBehaviour
 
         if (Input.GetKeyDown(KeyCode.KeypadEnter) || Input.GetKeyDown(KeyCode.Return))
         {
-            #region ¸í·É¾î Á¶È¸
+            #region ëª…ë ¹ì–´ ì¡°íšŒ
             if (ConsoleInputFind.text == ls)
             {
                 consoleText.color = Color.yellow;
-                consoleText.text = "Console ¸í·É¾î´Â Linux ¸í·É¾î ±â¹İÀ¸·Î °³¹ß Çß½À´Ï´Ù. \n ¹æ Ã£±â: ls room,   GameScene °­Á¦ ÀüÈ¯: cat GameScene start";
+                consoleText.text = "Console ëª…ë ¹ì–´ëŠ” Linux ëª…ë ¹ì–´ ê¸°ë°˜ìœ¼ë¡œ ê°œë°œ í–ˆìŠµë‹ˆë‹¤. \n ë°© ì°¾ê¸°: ls room,   GameScene ê°•ì œ ì „í™˜: cat GameScene";
             }
                 #endregion
 
-            #region °­Á¦ ¾À ÀüÈ¯
+            #region ê°•ì œ ì”¬ ì „í™˜
                 if (ConsoleInputFind.text == cat_GameScene_start)
             {
                 if (PhotonNetwork.CurrentRoom != null && PhotonNetwork.CurrentRoom.PlayerCount == 1)
@@ -60,18 +60,18 @@ public class ConsoleManager : MonoBehaviour
             }
             #endregion
 
-            #region ¹æ Ã£±â
+            #region ë°© ì°¾ê¸°
             if (ConsoleInputFind.text == ls_room)
             {
                 if(PhotonNetwork.CurrentRoom != null && PhotonNetwork.CurrentRoom.PlayerCount == 1)
                 {
                     consoleText.color = Color.green;
-                    consoleText.text = $"{PhotonNetwork.CurrentRoom.Name}¹æÀÌ Á¸Àç ÇÕ´Ï´Ù.";
+                    consoleText.text = $"{PhotonNetwork.CurrentRoom.Name}ë°©ì´ ì¡´ì¬ í•©ë‹ˆë‹¤.";
                 }
                 else
                 {
                     consoleText.color = Color.white;
-                    consoleText.text = "¹æÀÌ Á¸Àç ÇÏÁö ¾Ê½À´Ï´Ù.";
+                    consoleText.text = "ë°©ì´ ì¡´ì¬ í•˜ì§€ ì•ŠìŠµë‹ˆë‹¤.";
                 }   
             }
             #endregion
