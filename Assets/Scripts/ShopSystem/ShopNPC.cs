@@ -1,4 +1,5 @@
 using UnityEngine;
+using Photon.Pun;
 
 public class ShopNPC : MonoBehaviour
 {
@@ -8,26 +9,42 @@ public class ShopNPC : MonoBehaviour
     void Start()
     {
         shop = GetComponent<Shop>();
+
+        if (shop == null)
+        {
+            Debug.LogError("ShopNPC requires a Shop component on the same GameObject.");
+        }
     }
 
     void Update()
     {
         if (playerIsClose && Input.GetKeyDown(KeyCode.E) && !DialogueManager.IsDialogueActive)
         {
-            if (!UIManager.instance.shopPanel.activeInHierarchy)
+            if (shop != null && UIManager.instance != null)
             {
-                UIManager.instance.OpenShop(shop.itemsForSale, shop);
+                if (!UIManager.instance.shopPanel.activeInHierarchy)
+                {
+                    UIManager.instance.OpenShop(shop.itemsForSale, shop);
+                }
             }
         }
     }
 
     private void OnTriggerEnter(Collider other)
     {
-        if (other.CompareTag("Player")) playerIsClose = true;
+        PhotonView otherPv = other.GetComponent<PhotonView>();
+        if (other.CompareTag("Player") && otherPv != null && otherPv.IsMine)
+        {
+            playerIsClose = true;
+        }
     }
 
     private void OnTriggerExit(Collider other)
     {
-        if (other.CompareTag("Player")) playerIsClose = false;
+        PhotonView otherPv = other.GetComponent<PhotonView>();
+        if (other.CompareTag("Player") && otherPv != null && otherPv.IsMine)
+        {
+            playerIsClose = false;
+        }
     }
 }

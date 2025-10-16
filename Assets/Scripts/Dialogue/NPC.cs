@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
+using Photon.Pun;
 
 public class NPC : MonoBehaviour
 {
@@ -16,13 +17,15 @@ public class NPC : MonoBehaviour
 
     [Header("NPC 상태")]
     public int likability = 0;
+
+    private Inventory localPlayerInventory = null;
     private bool playerIsClose = false;
 
     void Update()
     {
-        if (playerIsClose && Input.GetKeyDown(KeyCode.E) && !DialogueManager.IsDialogueActive)
+        if (playerIsClose && localPlayerInventory != null && Input.GetKeyDown(KeyCode.E) && !DialogueManager.IsDialogueActive)
         {
-            bool giftInteraction = CheckAndGiveGift();
+            bool giftInteraction = RequestGiftInteraction();
             if (!giftInteraction)
             {
                 TriggerRegularDialogue();
@@ -30,26 +33,30 @@ public class NPC : MonoBehaviour
         }
     }
 
-    private bool CheckAndGiveGift()
+    private bool RequestGiftInteraction()
     {
-        Inventory playerInventory = Inventory.instance;
+        string giftItemID = null;
 
-        // 1. 선호하는 아이템 목록을 확인
         foreach (string itemID in preferredItemIDs)
         {
-            if (playerInventory.HasItem(itemID))
+            if (localPlayerInventory.HasItem(itemID))
             {
-                playerInventory.RemoveItem(itemID);
-                this.likability += likabilityBonus;
+                giftItemID = itemID;
+
+                // 마스터 클라이언트에게 호감도 증가 요청 (RpcRequestChangeLikability는 ServerMasterClient에 구현되어 있어야 함)
+                ServerMasterClient.Instance.pv.RPC("RpcRequestChangeLikability", RpcTarget.MasterClient,
+                                                localPlayerInventory.pv.Owner.ActorNumber,
+                                                giftItemID,
+                                                likabilityBonus);
+
                 FindObjectOfType<DialogueManager>().StartDialogue(thankYouDialogue, this);
                 return true;
             }
         }
 
-        // 2. 거절하는 아이템 목록을 확인
         foreach (string itemID in rejectedItemIDs)
         {
-            if (playerInventory.HasItem(itemID))
+            if (localPlayerInventory.HasItem(itemID))
             {
                 FindObjectOfType<DialogueManager>().StartDialogue(rejectionDialogue, this);
                 return true;
@@ -59,6 +66,14 @@ public class NPC : MonoBehaviour
         return false;
     }
 
+    [PunRPC]
+    public void RpcChangeLikability(int likabilityChange)
+    {
+        // 마스터 클라이언트의 명령을 받아 호감도를 동기화합니다.
+        this.likability += likabilityChange;
+        Debug.Log($"NPC 호감도 변경: {likabilityChange}. 현재 호감도: {this.likability}");
+    }
+
     public void TriggerRegularDialogue()
     {
         FindObjectOfType<DialogueManager>().StartDialogue(regularDialogue, this);
@@ -66,11 +81,21 @@ public class NPC : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
-        if (other.CompareTag("Player")) playerIsClose = true;
+        PhotonView otherPv = other.GetComponent<PhotonView>();
+        if (other.CompareTag("Player") && otherPv != null && otherPv.IsMine)
+        {
+            playerIsClose = true;
+            localPlayerInventory = other.GetComponent<Inventory>();
+        }
     }
 
     private void OnTriggerExit(Collider other)
     {
-        if (other.CompareTag("Player")) playerIsClose = false;
+        PhotonView otherPv = other.GetComponent<PhotonView>();
+        if (other.CompareTag("Player") && otherPv != null && otherPv.IsMine)
+        {
+            playerIsClose = false;
+            localPlayerInventory = null;
+        }
     }
 }

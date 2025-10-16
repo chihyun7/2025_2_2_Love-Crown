@@ -22,6 +22,7 @@ public class UIManager : MonoBehaviour
     public Transform inventoryContent;
     public GameObject itemSlotPrefab;
 
+    private Inventory localInventory;
     void Awake()
     {
         if (instance == null) instance = this;
@@ -30,12 +31,24 @@ public class UIManager : MonoBehaviour
 
     void Start()
     {
+        Inventory[] inventories = FindObjectsOfType<Inventory>();
+        foreach (Inventory inv in inventories)
+        {
+            if (inv.pv != null && inv.pv.IsMine)
+            {
+                localInventory = inv;
+                break;
+            }
+        }
         UpdateGoldUI();
     }
 
     public void UpdateGoldUI()
     {
-        goldText.text = "Gold: " + Inventory.instance.gold;
+        if (localInventory != null)
+        {
+            goldText.text = "Gold: " + localInventory.gold;
+        }
     }
 
     public void ToggleInventoryPanel()
@@ -61,6 +74,7 @@ public class UIManager : MonoBehaviour
         {
             GameObject slotGO = Instantiate(itemSlotPrefab, shopContent);
             ItemSlot slot = slotGO.GetComponent<ItemSlot>();
+
             slot.Initialize(item, () => ShowConfirmationPopup(item, shopInstance));
         }
     }
@@ -78,7 +92,7 @@ public class UIManager : MonoBehaviour
             Destroy(child.gameObject);
         }
 
-        foreach (ItemData item in Inventory.instance.items)
+        foreach (ItemData item in localInventory.items)
         {
             GameObject slotGO = Instantiate(itemSlotPrefab, inventoryContent);
             ItemSlot slot = slotGO.GetComponent<ItemSlot>();
@@ -94,7 +108,7 @@ public class UIManager : MonoBehaviour
         yesButton.onClick.RemoveAllListeners();
         yesButton.onClick.AddListener(() =>
         {
-            shopInstance.BuyItem(item);
+            shopInstance.RequestPurchase(item.itemID);
             confirmationPanel.SetActive(false);
         });
 

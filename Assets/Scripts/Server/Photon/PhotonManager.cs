@@ -4,6 +4,8 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 using System.Collections;
+using System.Text;
+using System.Linq; // PlayerText 로직을 더 깔끔하게 하기 위해 필요할 수 있습니다.
 
 public class PhotonManager : MonoBehaviourPunCallbacks
 {
@@ -11,11 +13,12 @@ public class PhotonManager : MonoBehaviourPunCallbacks
     public string gameVersion = "1.0";
 
     [Header("UI 연결")]
+    public InputField playerInput;
     public InputField createNameInput;
     public Text statusText;
 
     public GameObject gamestartButton;
-
+    private StringBuilder sb = new StringBuilder();
     private static PhotonManager instance;
 
     private void Awake()
@@ -43,7 +46,6 @@ public class PhotonManager : MonoBehaviourPunCallbacks
 
     private void Start()
     {
-
         ConnectToPhoton();
     }
 
@@ -55,12 +57,12 @@ public class PhotonManager : MonoBehaviourPunCallbacks
         {
             PhotonNetwork.GameVersion = gameVersion;
             PhotonNetwork.ConnectUsingSettings();
-            statusText.text = "서버에 연결 중...";
+            statusText.text = "\n서버에 연결 중...";
         }
         else
         {
             PhotonNetwork.JoinLobby();
-            statusText.text = "로비로 진입...";
+            statusText.text = "\n로비로 진입...";
         }
     }
 
@@ -69,6 +71,7 @@ public class PhotonManager : MonoBehaviourPunCallbacks
         statusText.text = "마스터 서버 연결 성공!";
         PhotonNetwork.JoinLobby();
     }
+
 
     public override void OnDisconnected(DisconnectCause cause)
     {
@@ -84,6 +87,8 @@ public class PhotonManager : MonoBehaviourPunCallbacks
 
     public void CreateRoom()
     {
+        playerName();
+
         if (string.IsNullOrEmpty(createNameInput.text))
         {
             statusText.text = "방 이름을 입력하세요.";
@@ -99,10 +104,28 @@ public class PhotonManager : MonoBehaviourPunCallbacks
 
         PhotonNetwork.CreateRoom(createNameInput.text, options);
         statusText.text = $"방 생성 시도: {createNameInput.text}";
+        Debug.Log(PhotonNetwork.NickName);
+    }
+
+    public void playerName()
+    {
+        if (playerInput != null && !string.IsNullOrEmpty(playerInput.text))
+        {
+            PhotonNetwork.NickName = playerInput.text;
+            statusText.text = $"닉네임 설정: {PhotonNetwork.NickName}";
+
+        }
+        else
+        {
+            PhotonNetwork.NickName = $"Player_{Random.Range(1000, 9999)}";
+            statusText.text = $"닉네임 미입력, 자동 설정: {PhotonNetwork.NickName}";
+        }
     }
 
     public void JoinRoom()
     {
+        playerName();
+
         if (string.IsNullOrEmpty(createNameInput.text))
         {
             statusText.text = "방 이름을 입력하세요.";
@@ -125,24 +148,80 @@ public class PhotonManager : MonoBehaviourPunCallbacks
 
     public override void OnJoinedRoom()
     {
-        statusText.text = "방 입장 성공! GameScene 로딩...";
-        statusText.text = $"현제 플레이어 : {PhotonNetwork.CurrentRoom.PlayerCount}명";
-       
 
-     
+        statusText.text = "방 입장 성공! 플레이어 목록 업데이트 중...";
+
+
+        PlayerText();
+
+        if (PhotonNetwork.IsMasterClient)
+        {
+            if (gamestartButton != null) gamestartButton.gameObject.SetActive(true);
+        }
     }
 
     public override void OnPlayerEnteredRoom(Player newPlayer)
     {
-        statusText.text = $"현제 플레이어 : {PhotonNetwork.CurrentRoom.PlayerCount}명";
-        if (statusText != null) statusText = null;
-        if (createNameInput != null) createNameInput = null;
-        if(gamestartButton != null) gamestartButton.gameObject.SetActive(true);
+        // 1. 상태 메시지 업데이트
+        statusText.text = $"{newPlayer.NickName}님이 입장했습니다.";
+
+        // 2. 플레이어 목록 업데이트 (모두에게 동기화)
+        PlayerText();
+
+        // 마스터 클라이언트라면 인원수 확인 후 게임 시작 버튼 활성화
+        if (PhotonNetwork.IsMasterClient && PhotonNetwork.CurrentRoom.PlayerCount == PhotonNetwork.CurrentRoom.MaxPlayers)
+        {
+            if (gamestartButton != null) gamestartButton.gameObject.SetActive(true);
+        }
+    }
+
+    public override void OnPlayerLeftRoom(Player otherPlayer)
+    {
+        // 플레이어가 나가도 목록을 업데이트합니다.
+        statusText.text = $"{otherPlayer.NickName}님이 퇴장했습니다.";
+        PlayerText();
+
+        if (!PhotonNetwork.IsMasterClient && gamestartButton != null)
+        {
+            if (PhotonNetwork.LocalPlayer.IsMasterClient)
+            {
+                gamestartButton.gameObject.SetActive(true);
+            }
+        }
+    }
+
+
+    void PlayerText()
+    {
+        if (statusText == null || !PhotonNetwork.InRoom) return;
+
+        sb.Clear();
+
+        sb.AppendLine($"--- 현제 플레이어: {PhotonNetwork.CurrentRoom.PlayerCount}/{PhotonNetwork.CurrentRoom.MaxPlayers} ---");
+
+        int playerIndex = 1;
+        foreach (var playerEntry in PhotonNetwork.CurrentRoom.Players)
+        {
+            string playerName = playerEntry.Value.NickName;
+
+            string localIndicator = playerEntry.Value.IsLocal ? " (나)" : "";
+            string masterIndicator = playerEntry.Value.IsMasterClient ? " (방장)" : "";
+
+            sb.AppendLine($"플레이어 {playerIndex++}: {playerName}{localIndicator}{masterIndicator}");
+        }
+
+        statusText.text = sb.ToString();
     }
 
     public void GameStartButton()
     {
-        PhotonNetwork.LoadLevel("GameScene");
+        // if (statusText != null) statusText = null;
+        // if (createNameInput != null) createNameInput = null;
+
+        if (PhotonNetwork.IsMasterClient)
+        {
+            PhotonNetwork.LoadLevel("GameScene");
+        }
     }
 
     #endregion
@@ -153,11 +232,12 @@ public class PhotonManager : MonoBehaviourPunCallbacks
     {
         if (scene.name != "GameScene") return;
         StartCoroutine(SpawnPlayerAfterSceneLoaded());
+
     }
 
     private IEnumerator SpawnPlayerAfterSceneLoaded()
     {
-        // 1. 씬 오브젝트의 Awake/Start가 완료될 때까지 기본적으로 한 프레임 대기
+        // ... (PlayerSpawnManager 관련 로직은 유지) ...
         yield return null;
 
         float startTime = Time.time;
@@ -166,32 +246,26 @@ public class PhotonManager : MonoBehaviourPunCallbacks
         while (PlayerSpawnManager.instance == null && Time.time < startTime + 5f)
         {
             Debug.LogWarning("PlayerSpawnManager 대기 중...");
-
-            // 씬에서 직접 찾아서 인스턴스에 강제 할당 (가장 확실한 방법)
             PlayerSpawnManager foundManager = FindObjectOfType<PlayerSpawnManager>();
 
             if (foundManager != null)
             {
-                // 찾은 오브젝트를 PlayerSpawnManager의 static instance에 할당하여 참조 확보
                 PlayerSpawnManager.instance = foundManager;
-                break; 
+                break;
             }
-
-            // 루프 내부에서는 오직 대기만 수행해야 합니다. (이전 오류 발생 로직 제거)
-            yield return null; 
+            yield return null;
         }
 
         // 3. 최종 검증 (루프 탈출 후)
         if (PlayerSpawnManager.instance == null)
         {
-            Debug.LogError("PlayerSpawnManager를 5초 내에 찾을 수 없어 스폰 실패! GameScene에 오브젝트가 있는지 확인하세요.");
+            Debug.LogError("PlayerSpawnManager를 5초 내에 찾을 수 없어 스폰 실패!");
             yield break;
         }
 
-        // 스폰 포인트 준비 확인
         if (PlayerSpawnManager.instance.spawnPoints == null || PlayerSpawnManager.instance.spawnPoints.Length == 0)
         {
-            Debug.LogError("PlayerSpawnManager에 스폰 포인트가 설정되지 않았습니다. 인스펙터 설정을 확인하세요.");
+            Debug.LogError("PlayerSpawnManager에 스폰 포인트가 설정되지 않았습니다.");
             yield break;
         }
 
