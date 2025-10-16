@@ -68,12 +68,18 @@ public class ServerMasterClient : MonoBehaviourPunCallbacks
 
     // 아이템 구매 여부 판별 (마스터 클라이언트에서 실행)
     [PunRPC]
-    public void RpcRequestBuyItem(string itemID, PhotonMessageInfo info)
+    public void RpcRequestBuyItem(string itemID, Photon.Realtime.Player requesterPlayer, PhotonMessageInfo info)
     {
+        // 1. 보안 체크(마스터 클라이언트에서만 실행)
         if (!PhotonNetwork.IsMasterClient) return;
 
-        int requesterActorID = info.Sender.ActorNumber;
+        // PhotonMessageInfo 대신 전달받은 Player 객체에서 정보를 가져옵니다.
+        int requesterActorID = requesterPlayer.ActorNumber;
+        string requesterNickName = requesterPlayer.NickName;
 
+        Debug.Log($"[Server] 아이템 구매 요청: {requesterNickName} (ID: {requesterActorID}) -> 아이템: {itemID}");
+
+        // 1. 아이템 데이터베이스에서 아이템 정보(가격)를 조회
         if (!itemDatabase.TryGetValue(itemID, out ItemData itemData))
         {
             Debug.LogError($"[Server] 알 수 없는 아이템 ID: {itemID} 요청이 들어왔습니다.");
@@ -86,13 +92,14 @@ public class ServerMasterClient : MonoBehaviourPunCallbacks
         {
             if (targetInventory.CanAfford(itemData.price))
             {
-                Debug.Log($"[Server] {info.Sender.NickName}의 구매 승인.");
+                Debug.Log($"[Server] {requesterNickName}의 구매 승인.");
 
+                // 일반적으로 Inventory의 상태 변경은 All 또는 Others로 전송됩니다.
                 targetInventory.pv.RPC("RpcExecuteBuy", RpcTarget.All, itemID, itemData.price);
             }
             else
             {
-                Debug.Log($"[Server] 구매 거절: {info.Sender.NickName}의 골드가 부족합니다.");
+                Debug.Log($"[Server] 구매 거절: {requesterNickName}의 골드가 부족합니다.");
             }
         }
         else
