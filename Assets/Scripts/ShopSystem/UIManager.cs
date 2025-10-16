@@ -39,17 +39,8 @@ public class UIManager : MonoBehaviour
 
     void Start()
     {
+        // Start 시점에 인벤토리를 찾고, 실패하면 일정 시간 후 다시 시도하는 로직을 시작합니다.
         FindLocalPlayerInventory();
-
-        // localInventory를 찾았으면 골드 UI를 업데이트
-        if (localInventory != null)
-        {
-            UpdateGoldText(localInventory.gold);
-        }
-        else
-        {
-            UpdateGoldText(0);
-        }
     }
 
     /// <summary>
@@ -61,26 +52,38 @@ public class UIManager : MonoBehaviour
 
         foreach (Inventory inv in inventories)
         {
+            // PhotonView의 소유자가 로컬 플레이어인지 확인
             if (inv.pv != null && inv.pv.IsMine)
             {
                 localInventory = inv;
                 Debug.Log("UIManager: 로컬 플레이어 인벤토리 찾음");
 
-                // 찾은 후 초기 골드 UI 업데이트
+                // 찾은 후 즉시 초기 골드 UI 업데이트
                 UpdateGoldText(localInventory.gold);
+
+                // 성공했으므로 예정된 재시도 Invoke를 취소합니다.
+                CancelInvoke("RetryFindLocalPlayerInventory");
                 return;
             }
         }
 
-        if (localInventory == null)
+        // 로컬 인벤토리를 아직 찾지 못했다면 1초 뒤에 재시도를 예약합니다.
+        if (localInventory == null && !IsInvoking("RetryFindLocalPlayerInventory"))
         {
-            Debug.LogWarning("UIManager: 로컬 플레이어 인벤토리를 아직 찾지 못했습니다. 스폰 후 다시 시도됩니다.");
+            Debug.LogWarning("UIManager: 로컬 플레이어 인벤토리를 아직 찾지 못했습니다. 1초 후 재시도 예약.");
+            Invoke("RetryFindLocalPlayerInventory", 1.0f);
         }
+    }
+
+    private void RetryFindLocalPlayerInventory()
+    {
+        // FindLocalPlayerInventory를 다시 실행하여 재시도합니다.
+        FindLocalPlayerInventory();
     }
 
 
     /// <summary>
-    /// Inventory.cs의 RpcExecuteBuy에서 호출되는 골드 UI 업데이트 함수입니다.
+    /// Inventory.cs에서 호출되는 골드 UI 업데이트 함수입니다.
     /// </summary>
     public void UpdateGoldText(int currentGold)
     {
@@ -92,6 +95,7 @@ public class UIManager : MonoBehaviour
 
     public void ToggleInventoryPanel()
     {
+        // 로컬 인벤토리가 할당되지 않았다면 다시 찾습니다.
         if (localInventory == null) FindLocalPlayerInventory();
 
         if (localInventory == null)
@@ -113,7 +117,6 @@ public class UIManager : MonoBehaviour
 
         shopPanel.SetActive(true);
 
-        // 널 조건부 접근(?. )을 명시적 널 체크로 변경하여 C# 호환성 문제 방지
         if (localInventory != null)
         {
             PlayerMove playerMove = localInventory.GetComponent<PlayerMove>();
@@ -142,7 +145,6 @@ public class UIManager : MonoBehaviour
     {
         shopPanel.SetActive(false);
 
-        // 널 조건부 접근(?. )을 명시적 널 체크로 변경하여 C# 호환성 문제 방지
         if (localInventory != null)
         {
             PlayerMove playerMove = localInventory.GetComponent<PlayerMove>();
@@ -165,7 +167,6 @@ public class UIManager : MonoBehaviour
             return;
         }
 
-        // 기존 아이템 슬롯 제거
         foreach (Transform child in inventoryContent)
         {
             Destroy(child.gameObject);
@@ -184,7 +185,6 @@ public class UIManager : MonoBehaviour
             {
                 GameObject slotGO = Instantiate(itemSlotPrefab, inventoryContent);
 
-                // ItemSlot 프리팹 내부에 아이템 이름과 수량을 표시할 TextMeshProUGUI가 있다고 가정하고 직접 업데이트
                 TextMeshProUGUI itemText = slotGO.GetComponentInChildren<TextMeshProUGUI>();
                 if (itemText != null)
                 {
@@ -213,7 +213,6 @@ public class UIManager : MonoBehaviour
             else
             {
                 Debug.Log("골드가 부족합니다.");
-                // TODO: UI에 골드 부족 메시지 표시
             }
             confirmationPanel.SetActive(false);
         });

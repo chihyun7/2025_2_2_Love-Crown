@@ -227,7 +227,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   pv: {fileID: 0}
-  items: []
   gold: 100
 --- !u!1 &4576248821703999652
 GameObject:

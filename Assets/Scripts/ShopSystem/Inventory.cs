@@ -1,14 +1,15 @@
-using System.Collections.Generic;
+ï»¿using System.Collections.Generic;
 using UnityEngine;
 using Photon.Pun;
 using Photon.Realtime;
 
-public class Inventory : MonoBehaviourPunCallbacks
+// IPunObservableì„ ìƒì†ë°›ì•„ Gold ë³€ìˆ˜ì˜ ìƒíƒœë¥¼ ë™ê¸°í™”í•©ë‹ˆë‹¤.
+public class Inventory : MonoBehaviourPunCallbacks, IPunObservable
 {
     public PhotonView pv;
 
-    // ¾ÆÀÌÅÛ ID(string)¿Í ¼ö·®(int)À» ÃßÀûÇÏ´Â Dictionary¸¦ »ç¿ëÇÕ´Ï´Ù.
-    private Dictionary<string, int> items = new Dictionary<string, int>();
+Â  Â  // ì•„ì´í…œ ID(string)ì™€ ìˆ˜ëŸ‰(int)ì„ ì¶”ì í•˜ëŠ” Dictionaryë¥¼ ì‚¬ìš©í•©ë‹ˆë‹¤.
+Â  Â  private Dictionary<string, int> items = new Dictionary<string, int>();
 
     public int gold = 100;
 
@@ -21,14 +22,14 @@ public class Inventory : MonoBehaviourPunCallbacks
 
         if (pv == null)
         {
-            Debug.LogError("Inventory ÄÄÆ÷³ÍÆ®¿¡ PhotonView°¡ ´©¶ôµÇ¾ú½À´Ï´Ù.");
+            Debug.LogError("Inventory ì»´í¬ë„ŒíŠ¸ì— PhotonViewê°€ ëˆ„ë½ë˜ì—ˆìŠµë‹ˆë‹¤.");
         }
     }
 
-    /// <summary>
-    /// UIManager°¡ ÀÎº¥Åä¸® µ¥ÀÌÅÍ¸¦ ÀĞ¾î°¥ ¼ö ÀÖµµ·Ï ÇÏ´Â Getter ¸Ş¼­µåÀÔ´Ï´Ù. (´©¶ôµÈ ºÎºĞ)
-    /// </summary>
-    public Dictionary<string, int> GetItems()
+Â  Â  /// <summary>
+Â  Â  /// UIManagerê°€ ì¸ë²¤í† ë¦¬ ë°ì´í„°ë¥¼ ì½ì–´ê°ˆ ìˆ˜ ìˆë„ë¡ í•˜ëŠ” Getter ë©”ì„œë“œì…ë‹ˆë‹¤.
+Â  Â  /// </summary>
+Â  Â  public Dictionary<string, int> GetItems()
     {
         return items;
     }
@@ -41,11 +42,11 @@ public class Inventory : MonoBehaviourPunCallbacks
     [PunRPC]
     public void RpcExecuteBuy(string itemID, int price)
     {
-        // 1. °ñµå Â÷°¨ 
-        gold -= price;
+Â  Â  Â  Â  // 1. ê³¨ë“œ ì°¨ê°Â 
+Â  Â  Â  Â  gold -= price;
 
-        // 2. ÀÎº¥Åä¸®¿¡ ¾ÆÀÌÅÛ Ãß°¡
-        if (items.ContainsKey(itemID))
+Â  Â  Â  Â  // 2. ì¸ë²¤í† ë¦¬ì— ì•„ì´í…œ ì¶”ê°€
+Â  Â  Â  Â  if (items.ContainsKey(itemID))
         {
             items[itemID]++;
         }
@@ -54,13 +55,13 @@ public class Inventory : MonoBehaviourPunCallbacks
             items.Add(itemID, 1);
         }
 
-        // 3. UI ¾÷µ¥ÀÌÆ®: ·ÎÄÃ Å¬¶óÀÌ¾ğÆ®¿¡¼­¸¸ ½ÇÇà (¸ÖÆ¼ÇÃ·¹ÀÌ È¯°æ¿¡¼­ ÇÊ¼ö)
-        if (pv.IsMine)
+Â  Â  Â  Â  // 3. UI ì—…ë°ì´íŠ¸: ë¡œì»¬ í´ë¼ì´ì–¸íŠ¸ì—ì„œë§Œ ì‹¤í–‰Â 
+Â  Â  Â  Â  if (pv.IsMine)
         {
             UpdateLocalUI();
         }
 
-        Debug.Log($"[Inventory] {pv.Owner.NickName} ±¸¸Å ½ÇÇà ¿Ï·á: {itemID}. ³²Àº °ñµå: {gold}");
+        Debug.Log($"[Inventory] {pv.Owner.NickName} êµ¬ë§¤ ì‹¤í–‰ ì™„ë£Œ: {itemID}. ë‚¨ì€ ê³¨ë“œ: {gold}");
     }
 
     public void AddItem(string itemID, int quantity = 1)
@@ -102,19 +103,47 @@ public class Inventory : MonoBehaviourPunCallbacks
         return items.ContainsKey(itemID) && items[itemID] > 0;
     }
 
-    // UI ¾÷µ¥ÀÌÆ® ÇÔ¼ö: ·ÎÄÃ ÇÃ·¹ÀÌ¾î Àü¿ë
-    private void UpdateLocalUI()
+Â  Â  // UI ì—…ë°ì´íŠ¸ í•¨ìˆ˜: ë¡œì»¬ í”Œë ˆì´ì–´ ì „ìš©
+Â  Â  private void UpdateLocalUI()
     {
         if (UIManager.instance != null)
         {
-            // °ñµå ÅØ½ºÆ® ¾÷µ¥ÀÌÆ®
-            UIManager.instance.UpdateGoldText(gold);
+Â  Â  Â  Â  Â  Â  // ê³¨ë“œ í…ìŠ¤íŠ¸ ì—…ë°ì´íŠ¸
+Â  Â  Â  Â  Â  Â  UIManager.instance.UpdateGoldText(gold);
 
-            // ÀÎº¥Åä¸® ÆĞ³ÎÀÌ ¿­·ÁÀÖ´Â °æ¿ì¿¡¸¸ ¸ñ·Ï UI ¾÷µ¥ÀÌÆ®
-            if (UIManager.instance.inventoryPanel != null && UIManager.instance.inventoryPanel.activeInHierarchy)
+Â  Â  Â  Â  Â  Â  // ì¸ë²¤í† ë¦¬ íŒ¨ë„ì´ ì—´ë ¤ìˆëŠ” ê²½ìš°ì—ë§Œ ëª©ë¡ UI ì—…ë°ì´íŠ¸
+Â  Â  Â  Â  Â  Â  if (UIManager.instance.inventoryPanel != null && UIManager.instance.inventoryPanel.activeInHierarchy)
             {
-                // UIManager¿¡¼­ GetItems()¸¦ È£ÃâÇÏ¿© ¸ñ·ÏÀ» ±×¸³´Ï´Ù.
                 UIManager.instance.UpdateInventoryUI();
+            }
+        }
+    }
+
+Â  Â  /// <summary>
+Â  Â  /// Gold ë³€ìˆ˜ì˜ ìƒíƒœ ë™ê¸°í™” ë¡œì§ì…ë‹ˆë‹¤.
+Â  Â  /// ì´ ë©”ì„œë“œê°€ ì‘ë™í•˜ë ¤ë©´ PhotonView ì»´í¬ë„ŒíŠ¸ì˜ Observed Componentsì— Inventory ìŠ¤í¬ë¦½íŠ¸ê°€ í• ë‹¹ë˜ì–´ ìˆì–´ì•¼ í•©ë‹ˆë‹¤.
+Â  Â  /// </summary>
+Â  Â  public void OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)
+    {
+        if (stream.IsWriting)
+        {
+Â  Â  Â  Â  Â  Â  // ì†Œìœ  í´ë¼ì´ì–¸íŠ¸: í˜„ì¬ ê³¨ë“œ ê°’ì„ ëª¨ë“  ì›ê²© í´ë¼ì´ì–¸íŠ¸ì—ê²Œ ë³´ëƒ…ë‹ˆë‹¤.
+Â  Â  Â  Â  Â  Â  stream.SendNext(gold);
+        }
+        else
+        {
+Â  Â  Â  Â  Â  Â  // ì›ê²© í´ë¼ì´ì–¸íŠ¸: ì†Œìœ ìê°€ ë³´ë‚¸ ê³¨ë“œ ê°’ì„ ë°›ìŠµë‹ˆë‹¤.
+Â  Â  Â  Â  Â  Â  int receivedGold = (int)stream.ReceiveNext();
+
+            if (gold != receivedGold)
+            {
+                gold = receivedGold;
+
+                // [ìˆ˜ì •] ë™ê¸°í™”ëœ ê°’ì´ ë³€ê²½ë˜ì—ˆì„ ë•Œ, ì´ ì¸ë²¤í† ë¦¬ê°€ ë¡œì»¬ í”Œë ˆì´ì–´ì˜ ê²ƒì´ë¼ë©´ UIë¥¼ ê°±ì‹ í•©ë‹ˆë‹¤.
+                if (pv.IsMine)
+                {
+                    UpdateLocalUI();
+                }
             }
         }
     }
