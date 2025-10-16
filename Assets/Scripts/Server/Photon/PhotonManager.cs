@@ -183,6 +183,7 @@ public class PhotonManager : MonoBehaviourPunCallbacks
 
         if (!PhotonNetwork.IsMasterClient && gamestartButton != null)
         {
+            // 이 로직은 방장이 바뀌었을 때 새 방장에게 버튼을 활성화해야 함
             if (PhotonNetwork.LocalPlayer.IsMasterClient)
             {
                 gamestartButton.gameObject.SetActive(true);
@@ -215,9 +216,6 @@ public class PhotonManager : MonoBehaviourPunCallbacks
 
     public void GameStartButton()
     {
-        // if (statusText != null) statusText = null;
-        // if (createNameInput != null) createNameInput = null;
-
         if (PhotonNetwork.IsMasterClient)
         {
             PhotonNetwork.LoadLevel("GameScene");
@@ -230,14 +228,25 @@ public class PhotonManager : MonoBehaviourPunCallbacks
 
     private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
+        // 'GameScene'이 로드되었을 때만 스폰 로직을 실행합니다.
         if (scene.name != "GameScene") return;
-        StartCoroutine(SpawnPlayerAfterSceneLoaded());
 
+        // 코루틴을 시작할 때는 오브젝트가 활성화되어 있는지 확인합니다.
+        if (!gameObject.activeInHierarchy)
+        {
+            // 비활성화 상태라면 경고만 표시하고 코루틴 실행을 건너뛰는 것이 안전합니다.
+            Debug.LogWarning("PhotonManager 오브젝트가 비활성화 상태여서 코루틴을 시작할 수 없습니다.");
+            return;
+        }
+
+        StartCoroutine(SpawnPlayerAfterSceneLoaded());
     }
 
     private IEnumerator SpawnPlayerAfterSceneLoaded()
     {
-        // ... (PlayerSpawnManager 관련 로직은 유지) ...
+        // 이 코루틴은 씬 로드 후 PlayerSpawnManager를 찾고 플레이어를 스폰합니다.
+
+        // 1. 씬 로드 완료를 위해 한 프레임 대기
         yield return null;
 
         float startTime = Time.time;
@@ -273,6 +282,7 @@ public class PhotonManager : MonoBehaviourPunCallbacks
         int playerIndex = PhotonNetwork.LocalPlayer.ActorNumber - 1;
         Vector3 spawnPos = PlayerSpawnManager.instance.GetSpawnPosition(playerIndex);
 
+        // 'Player' 프리팹은 Resources 폴더에 있어야 합니다.
         GameObject player = PhotonNetwork.Instantiate("Player", spawnPos, Quaternion.identity);
 
         if (player == null)

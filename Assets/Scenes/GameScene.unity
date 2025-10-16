@@ -136,6 +136,7 @@ GameObject:
   - component: {fileID: 47934704}
   - component: {fileID: 47934708}
   - component: {fileID: 47934703}
+  - component: {fileID: 47934709}
   m_Layer: 0
   m_Name: NPC
   m_TagString: Untagged
@@ -297,6 +298,28 @@ CapsuleCollider:
   m_Height: 2
   m_Direction: 1
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &47934709
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 47934702}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: aa584fbee541324448dd18d8409c7a41, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  ObservedComponentsFoldoutOpen: 1
+  Group: 0
+  prefixField: -1
+  Synchronization: 3
+  OwnershipTransfer: 0
+  observableSearch: 2
+  ObservedComponents: []
+  sceneViewId: 5
+  InstantiationId: 0
+  isRuntimeInstantiated: 0
 --- !u!1 &102641965
 GameObject:
   m_ObjectHideFlags: 0
@@ -1027,6 +1050,7 @@ GameObject:
   m_Component:
   - component: {fileID: 275493285}
   - component: {fileID: 275493284}
+  - component: {fileID: 275493286}
   m_Layer: 0
   m_Name: Inventory
   m_TagString: Untagged
@@ -1046,6 +1070,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ad9c234bdc6f25944bb52c6f89d662aa, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  pv: {fileID: 0}
   items: []
   gold: 100
 --- !u!4 &275493285
@@ -1063,6 +1088,28 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &275493286
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 275493283}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: aa584fbee541324448dd18d8409c7a41, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  ObservedComponentsFoldoutOpen: 1
+  Group: 0
+  prefixField: -1
+  Synchronization: 3
+  OwnershipTransfer: 0
+  observableSearch: 2
+  ObservedComponents: []
+  sceneViewId: 4
+  InstantiationId: 0
+  isRuntimeInstantiated: 0
 --- !u!1 &315239953
 GameObject:
   m_ObjectHideFlags: 0
@@ -1951,6 +1998,7 @@ GameObject:
   - component: {fileID: 636901984}
   - component: {fileID: 636901983}
   - component: {fileID: 636901982}
+  - component: {fileID: 636901988}
   m_Layer: 0
   m_Name: NPC (1)
   m_TagString: Untagged
@@ -2112,6 +2160,28 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &636901988
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 636901981}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: aa584fbee541324448dd18d8409c7a41, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  ObservedComponentsFoldoutOpen: 1
+  Group: 0
+  prefixField: -1
+  Synchronization: 3
+  OwnershipTransfer: 0
+  observableSearch: 2
+  ObservedComponents: []
+  sceneViewId: 2
+  InstantiationId: 0
+  isRuntimeInstantiated: 0
 --- !u!1 &727773865
 GameObject:
   m_ObjectHideFlags: 0
@@ -4804,6 +4874,7 @@ GameObject:
   - component: {fileID: 2134172646}
   - component: {fileID: 2134172653}
   - component: {fileID: 2134172652}
+  - component: {fileID: 2134172654}
   m_Layer: 0
   m_Name: NPC (2)
   m_TagString: Untagged
@@ -4946,9 +5017,32 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 155c7a65a5b0b7940bc324dc15328705, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  itemIDsToSell: []
   itemsForSale:
   - {fileID: 11400000, guid: 56f1853c948474f4eb77efbcd73bdfa3, type: 2}
   - {fileID: 11400000, guid: cba91b4bf18bf4d42a9e1141f50e0c25, type: 2}
+--- !u!114 &2134172654
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2134172645}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: aa584fbee541324448dd18d8409c7a41, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  ObservedComponentsFoldoutOpen: 1
+  Group: 0
+  prefixField: -1
+  Synchronization: 3
+  OwnershipTransfer: 0
+  observableSearch: 2
+  ObservedComponents: []
+  sceneViewId: 1
+  InstantiationId: 0
+  isRuntimeInstantiated: 0
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

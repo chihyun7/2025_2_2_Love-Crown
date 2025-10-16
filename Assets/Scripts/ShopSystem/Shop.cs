@@ -26,16 +26,29 @@ public class Shop : MonoBehaviour
 
     public void RequestPurchase(string itemID)
     {
-        if (localPlayerInventory == null || ServerMasterClient.Instance == null)
+        //널 체크 추가: ServerMasterClient가 초기화되었는지 확인합니다.
+        if (ServerMasterClient.Instance == null)
         {
-            Debug.LogError("구매 요청 실패: 인벤토리 또는 마스터 클라이언트 참조가 없습니다.");
+            Debug.LogError("구매 요청 실패: ServerMasterClient 인스턴스가 존재하지 않아 RPC를 보낼 수 없습니다.");
             return;
         }
 
-        // ServerMasterClient의 RpcRequestBuyItem 함수를 마스터 클라이언트에게만 호출
-        ServerMasterClient.Instance.pv.RPC("RpcRequestBuyItem", RpcTarget.MasterClient, itemID);
+        // PV(PhotonView)도 널인지 한 번 더 확인하면 더 안전합니다.
+        if (ServerMasterClient.Instance.pv == null)
+        {
+            Debug.LogError("구매 요청 실패: ServerMasterClient의 PhotonView(pv)가 할당되지 않았습니다.");
+            return;
+        }
 
-        Debug.Log($"구매 요청 전송: {itemID} (To Master Client)");
+        // 모든 검사를 통과하면 RPC 호출 실행
+        ServerMasterClient.Instance.pv.RPC(
+            "RpcRequestBuyItem",
+            RpcTarget.MasterClient,
+            itemID,
+            PhotonNetwork.LocalPlayer
+        );
+
+        Debug.Log($"구매 요청 전송됨: ItemID={itemID}");
     }
 
     private void OnTriggerEnter(Collider other)
