@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using Photon.Pun;
 using Photon.Realtime;
+using System;
 
 [RequireComponent(typeof(PhotonView))]
 public class TestCharacterPlayerMoveMent : MonoBehaviourPunCallbacks, IPunObservable
@@ -10,113 +11,137 @@ public class TestCharacterPlayerMoveMent : MonoBehaviourPunCallbacks, IPunObserv
     public float characterPlayerWolkSpeed = 5f;
     public float characterPolayerRunSpeed = 10f;
     public float characterPlayerRoateSpeed = 10.0f;
-
     public Camera characterPlayerCamera;
-    //private PhotonView photonView;
 
     private Vector3 networkPosition;
     private Quaternion networkRotation;
+    private double timeAtReceive;
+    private const float FIXED_LERP_RATE = 0.3f;
 
     private bool isMoving = false;
     private bool networkIsMoving = false;
+    private bool networkIsRunning = false;
+
+    private Animator animator;
+    private int animID_IsMoving;
+    private int animID_IsRunning;
+
+    private Vector3 characterPlayerDerection;
 
     private void Start()
     {
-
         if (characterPlayerCamera == null)
         {
-            Camera characterPlayerCamera = GetComponentInChildren<Camera>(true);
-
+            characterPlayerCamera = GetComponentInChildren<Camera>(true);
             if (characterPlayerCamera == null)
             {
                 Debug.LogError("PlayerPrefab 내부에 'PlayerCamera' 오브젝트를 찾을 수 없습니다! 카메라 설정을 확인하세요.");
-                return;
             }
-
-
-
         }
-        if (photonView.IsMine)      // 내 캐릭터인지 확인
+
+        if (photonView.IsMine)
         {
-            characterPlayerCamera.gameObject.SetActive(true);                    // 이제 나의 1인칭 시점
+            if (characterPlayerCamera != null)
+            {
+                characterPlayerCamera.gameObject.SetActive(true);
+            }
             Debug.Log("내가 조작할 수 있는 플레이어 (1인칭 시점 활성화).");
-
         }
-
         else
         {
-            characterPlayerCamera.gameObject.SetActive(false);                    // 이제 나의 1인칭 시점
+            if (characterPlayerCamera != null)
+            {
+                characterPlayerCamera.gameObject.SetActive(false);
+            }
             Debug.Log("다른 플레이어 카메라 및 조작 비활성화.");
         }
+
+        if (PhotonNetwork.IsConnected)
+        {
+            PhotonNetwork.SerializationRate = 50;
+            PhotonNetwork.SendRate = 50;
+            Debug.Log("Photon 전송 속도를 최대로 설정.");
+        }
+
+        animator = GetComponent<Animator>();
+        if (animator == null)
+        {
+            Debug.LogError("플레이어 프리팹에서 Animator 컴포넌트를 찾을 수 없습니다. 애니메이션 코드가 비활성화됩니다.");
+
+            enabled = false;
+            return;
+        }
+        animID_IsMoving = Animator.StringToHash("IsMoving");
+        animID_IsRunning = Animator.StringToHash("IsRunning");
     }
 
     private void Update()
     {
-        if (!photonView.IsMine) return;                         // 내 것이 아니라면 즉시 함수 종료
+        if (photonView.IsMine)
+        {
+            float characterPlayerHorizontalInput = Input.GetAxis("Horizontal");
+            float characterPlayoerVerticalInput = Input.GetAxis("Vertical");
 
-        isMoving = CharacterPlayerMoveMent();
+            characterPlayerDerection = new Vector3(characterPlayerHorizontalInput, 0, characterPlayoerVerticalInput).normalized;
 
+            isMoving = characterPlayerDerection.magnitude > 0.1f;
+
+            bool currentIsRunning = (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift)) && isMoving;
+
+            animator.SetBool(animID_IsMoving, isMoving);
+            animator.SetBool(animID_IsRunning, currentIsRunning);
+        }
+    }
+
+    private void FixedUpdate()
+    {
+        if (photonView.IsMine)
+        {
+            CharacterPlayerMoveMentExecute();
+            return;
+        }
+
+        transform.position = Vector3.Lerp(transform.position, networkPosition, FIXED_LERP_RATE);
+        transform.rotation = Quaternion.Slerp(transform.rotation, networkRotation, FIXED_LERP_RATE);
+
+        animator.SetBool(animID_IsMoving, networkIsMoving);
+        animator.SetBool(animID_IsRunning, networkIsRunning);
     }
 
     public void OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)
     {
+        bool currentIsRunning = (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift)) && isMoving;
+
         if (stream.IsWriting)
         {
-            // 1. 데이터 송신 (내가 움직이는 플레이어일 때)
             stream.SendNext(transform.position);
             stream.SendNext(transform.rotation);
             stream.SendNext(isMoving);
+            stream.SendNext(currentIsRunning);
         }
         else
         {
-            // 2. 데이터 수신 (다른 플레이어일 때)
-            // 네트워크를 통해 받은 데이터를 저장.
-
             networkPosition = (Vector3)stream.ReceiveNext();
             networkRotation = (Quaternion)stream.ReceiveNext();
             networkIsMoving = (bool)stream.ReceiveNext();
+            networkIsRunning = (bool)stream.ReceiveNext();
 
-            // 핑이 높을 때 보간(Interpolation)을 위한 추가 작업 (선택 사항)
-            float lag = Mathf.Abs((float)(PhotonNetwork.Time - info.SentServerTime));
-            networkPosition += (Vector3)(networkPosition * lag); // 간단한 보간 보정
+            timeAtReceive = info.SentServerTime;
         }
     }
 
-    private void LateUpdate()
+    void CharacterPlayerMoveMentExecute()
     {
-        // 내 캐릭터가 아닐 때만 네트워크 위치로 업데이트합니다.
-        if (!photonView.IsMine)
-        {
-            // 부드러운 움직임을 위해 보간(Lerp) 적용
-            transform.position = Vector3.Lerp(transform.position, networkPosition, Time.deltaTime * characterPlayerRoateSpeed);
-            transform.rotation = Quaternion.Slerp(transform.rotation, networkRotation, Time.deltaTime * characterPlayerRoateSpeed);
-        }
-    }
-
-    bool CharacterPlayerMoveMent()
-    {
-        float characterPlayerHorizontalInput = Input.GetAxis("Horizontal");
-        float characterPlayoerVerticalInput = Input.GetAxis("Vertical");
-
-        Vector3 characterPlayerDerection = new Vector3(characterPlayerHorizontalInput, 0, characterPlayoerVerticalInput).normalized;
-
-        bool currentlyMoving = characterPlayerDerection.magnitude > 0.1f;
-
-        if (currentlyMoving)
+        if (isMoving)
         {
             float currentSpeed = Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift) ? characterPolayerRunSpeed : characterPlayerWolkSpeed;
 
-            Vector3 characterPlayerMove = characterPlayerDerection * currentSpeed * Time.deltaTime;
+            Vector3 characterPlayerMove = characterPlayerDerection * currentSpeed * Time.fixedDeltaTime;
 
             transform.position += characterPlayerMove;
 
-            // 회전 로직
             Quaternion characterPlayerRate = Quaternion.LookRotation(characterPlayerDerection);
-            transform.rotation = Quaternion.Slerp(transform.rotation, characterPlayerRate, characterPlayerRoateSpeed * Time.deltaTime);
+            transform.rotation = Quaternion.Slerp(transform.rotation, characterPlayerRate, characterPlayerRoateSpeed * Time.fixedDeltaTime);
         }
-
-        return currentlyMoving;
     }
 }
-
-
