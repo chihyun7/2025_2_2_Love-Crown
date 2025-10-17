@@ -20,11 +20,6 @@ public class PlayerSpawnManager : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// 플레이어 인덱스에 맞는 안전한 스폰 위치 반환
-    /// </summary>
-    /// <param name="playerIndex">플레이어 인덱스 (음수도 가능)</param>
-    /// <returns>스폰 위치(Vector3)</returns>
     public Vector3 GetSpawnPosition(int playerIndex)
     {
         // 스폰 포인트 배열 체크
@@ -47,10 +42,6 @@ public class PlayerSpawnManager : MonoBehaviour
         return spawnPoints[index].position;
     }
 
-    /// <summary>
-    /// 씬 전환 후 스폰 포인트 갱신 가능
-    /// </summary>
-    /// <param name="newSpawnPoints">새로운 스폰 포인트 배열</param>
     public void SetSpawnPoints(Transform[] newSpawnPoints)
     {
         if (newSpawnPoints == null || newSpawnPoints.Length == 0)

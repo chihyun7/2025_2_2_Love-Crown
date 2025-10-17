@@ -1,6 +1,7 @@
-using System.Collections.Generic;
-using UnityEngine;
 using Photon.Pun;
+using System.Collections.Generic;
+using Unity.VisualScripting;
+using UnityEngine;
 
 public class NPC : MonoBehaviour
 {
@@ -43,11 +44,12 @@ public class NPC : MonoBehaviour
             {
                 giftItemID = itemID;
 
-                // 마스터 클라이언트에게 호감도 증가 요청 (RpcRequestChangeLikability는 ServerMasterClient에 구현되어 있어야 함)
+                // 마스터 클라이언트에게 호감도 증가 요청
                 ServerMasterClient.Instance.pv.RPC("RpcRequestChangeLikability", RpcTarget.MasterClient,
-                                                localPlayerInventory.pv.Owner.ActorNumber,
-                                                giftItemID,
-                                                likabilityBonus);
+                    localPlayerInventory.pv.Owner.ActorNumber,
+                    this.GetComponent<PhotonView>().ViewID,
+                    giftItemID,
+                    likabilityBonus);
 
                 FindObjectOfType<DialogueManager>().StartDialogue(thankYouDialogue, this);
                 return true;
