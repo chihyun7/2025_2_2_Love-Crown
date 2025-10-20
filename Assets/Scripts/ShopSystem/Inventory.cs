@@ -51,11 +51,14 @@ public class Inventory : MonoBehaviourPunCallbacks, IPunObservable
     public void RpcExecuteBuy(string itemID, int price)
     {
         gold -= price;
+
+        Debug.Log($"[Inventory] 아이템 [{itemID}] {1}개가 구매되어 인벤토리에 들어왔습니다."); // 아이템 획득 주석
         AddItemToList(itemID, 1);
+
 
         if (pv.IsMine)
         {
-            UpdateLocalUI();
+            UpdateLocalUI(); 
         }
 
         Debug.Log($"[Inventory] {pv.Owner.NickName} 구매 실행 완료: {itemID}. 남은 골드: {gold}");
@@ -74,28 +77,32 @@ public class Inventory : MonoBehaviourPunCallbacks, IPunObservable
 
     private void AddItemToList(string itemID, int quantity)
     {
+        // 1. 이미 존재하는 아이템인지 찾기
+        // FindIndex를 사용하여 ItemEntry의 itemID가 일치하는지 확인합니다.
         int index = items.FindIndex(entry => entry.itemID == itemID);
 
         if (index != -1)
         {
+            // 2. 이미 존재: 수량 증가 후 업데이트
             ItemEntry existingEntry = items[index];
             existingEntry.quantity += quantity;
             items[index] = existingEntry;
+
+            Debug.Log($"[AddItemToList] 기존 아이템 수량 증가: {itemID}, 새 수량: {existingEntry.quantity}");
         }
         else
         {
+            // 3. 새 아이템: 리스트에 추가
             items.Add(new ItemEntry(itemID, quantity));
+
+            Debug.Log($"[AddItemToList] 새 아이템 추가: {itemID}, 수량: {quantity}");
         }
     }
 
-    /// <summary>
-    /// 🚨 RPC 수정: ServerMasterClient에서 호출되는 RPC 전용 아이템 제거 메서드.
-    /// RPC 서명을 'RemoveItem(String)'에 맞추기 위해 int quantity를 제거하고 1로 고정합니다.
-    /// </summary>
     [PunRPC]
     public void RemoveItem(string itemID)
     {
-        int quantityToRemove = 1; // RPC 호출 시에는 항상 1개를 제거하도록 고정
+        int quantityToRemove = 1;
 
         int index = items.FindIndex(entry => entry.itemID == itemID);
 
@@ -128,10 +135,23 @@ public class Inventory : MonoBehaviourPunCallbacks, IPunObservable
 
     private void UpdateLocalUI()
     {
+        if (items.Count == 0)
+        {
+            Debug.Log("Inventory is empty.");
+        }
+        else
+        {
+            foreach (var entry in items)
+            {
+                Debug.Log($"Item ID: {entry.itemID}, Quantity: {entry.quantity}");
+            }
+        }
+
         if (UIManager.instance != null)
         {
             UIManager.instance.UpdateGoldText(gold);
 
+            // 인벤토리 패널이 열려 있는 경우에만 아이템 목록을 갱신
             if (UIManager.instance.inventoryPanel != null && UIManager.instance.inventoryPanel.activeInHierarchy)
             {
                 UIManager.instance.UpdateInventoryUI();

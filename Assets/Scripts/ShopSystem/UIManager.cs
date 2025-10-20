@@ -1,9 +1,10 @@
-﻿using System.Collections.Generic;
+﻿using Photon.Pun;
+using System;
+using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
-using TMPro;
-using System;
-using Photon.Pun;
+using static UnityEngine.EventSystems.EventTrigger;
 
 public class UIManager : MonoBehaviour
 {
@@ -164,12 +165,29 @@ public class UIManager : MonoBehaviour
             Destroy(child.gameObject);
         }
 
-        // 🚨 핵심 수정: Inventory.ItemEntry로 타입 명시
         List<Inventory.ItemEntry> currentItems = localInventory.GetItems();
+
+
+        Debug.Log("--- UIManager: 인벤토리 UI 갱신 중 ---");
+
+        if (currentItems == null || currentItems.Count == 0)
+        {
+            Debug.Log("인벤토리가 현재 비어있습니다 (0개).");
+        }
+        else
+        {
+            Debug.Log($"인벤토리 아이템 발견: {currentItems.Count} 종류.");
+            foreach (var entry in currentItems)
+            {
+                Debug.Log($"   -> 아이템 ID: {entry.itemID}, 수량: {entry.quantity}개");
+            }
+        }
+
+        Debug.Log("------------------------------------------");
+
 
         if (currentItems == null) return;
 
-        // 🚨 핵심 수정: List<ItemEntry>를 순회
         foreach (Inventory.ItemEntry itemEntry in currentItems)
         {
             string itemID = itemEntry.itemID;
@@ -177,7 +195,7 @@ public class UIManager : MonoBehaviour
 
             if (quantity > 0)
             {
-                // ItemData 로드
+                // ItemData 로드는 ServerMasterClient가 담당한다고 가정
                 ItemData data = ServerMasterClient.Instance.GetItemData(itemID);
 
                 if (data == null)
@@ -191,8 +209,7 @@ public class UIManager : MonoBehaviour
 
                 if (slotComponent != null)
                 {
-                    // 🚨 오류 해결: ItemSlot의 SetItem 메서드 호출 (첫 번째 오류 해결)
-                    slotComponent.SetItem(data, quantity);
+                    slotComponent.SetItem(data, quantity); // ItemSlot.SetItem에서 버튼이 활성화됨
                 }
                 else
                 {
