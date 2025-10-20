@@ -1,14 +1,22 @@
-using System.Collections.Generic;
+ï»¿using System.Collections.Generic;
 using Photon.Pun;
 using UnityEngine;
 using Photon.Realtime;
+using System.Linq;
+using UnityEngine.SceneManagement; // ì”¬ ì „í™˜ì„ ìœ„í•´ ì¶”ê°€
+using ExitGames.Client.Photon;
+
+// ItemData, Inventory, NPC í´ë˜ìŠ¤ ì •ì˜ê°€ í•„ìš”í•©ë‹ˆë‹¤. (ì•„ë˜ PlaceholderClasses.cs ì°¸ì¡°)
 
 public class ServerMasterClient : MonoBehaviourPunCallbacks
 {
     public static ServerMasterClient Instance;
 
     public PhotonView pv;
-    private Dictionary<string, ItemData> itemDatabase = new Dictionary<string, ItemData>();
+    // ğŸš¨ List<ItemData>ë¥¼ ì‚¬ìš©í•˜ë„ë¡ ìœ ì§€
+    private List<ItemData> itemDatabase = new List<ItemData>();
+
+    private Dictionary<int, int> charmedCountPerPlayer = new Dictionary<int, int>();
 
     private void Awake()
     {
@@ -16,7 +24,6 @@ public class ServerMasterClient : MonoBehaviourPunCallbacks
         {
             Instance = this;
             pv = GetComponent<PhotonView>();
-
             DontDestroyOnLoad(gameObject);
         }
         else
@@ -32,30 +39,38 @@ public class ServerMasterClient : MonoBehaviourPunCallbacks
 
     private void SetupItemDatabase()
     {
+        // NOTE: Resources.LoadAllì„ ì‚¬ìš©í•˜ë ¤ë©´ ItemDataê°€ ì‹¤ì œ ScriptableObjectë¡œ ì¡´ì¬í•´ì•¼ í•©ë‹ˆë‹¤.
         ItemData[] allItems = Resources.LoadAll<ItemData>("Items");
 
         if (allItems.Length == 0)
         {
-            Debug.LogError("Item Database ·Îµå ½ÇÆĞ: Resources/Items Æú´õ¿¡¼­ ItemData ScriptableObject¸¦ Ã£À» ¼ö ¾ø½À´Ï´Ù.");
+            Debug.LogError("Item Database ë¡œë“œ ì‹¤íŒ¨: Resources/Items í´ë”ì—ì„œ ItemDataë¥¼ ì°¾ì„ ìˆ˜ ì—†ìŠµë‹ˆë‹¤.");
             return;
         }
 
         itemDatabase.Clear();
         foreach (ItemData item in allItems)
         {
-            if (itemDatabase.ContainsKey(item.itemID))
+            if (itemDatabase.Find(data => data.itemID == item.itemID) != null) // List ì¤‘ë³µ ì²´í¬
             {
-                Debug.LogWarning($"[DB Setup] Áßº¹µÈ Item ID ¹ß°ß: {item.itemID}. ÀÌ ¾ÆÀÌÅÛÀº ¹«½ÃµË´Ï´Ù.");
+                Debug.LogWarning($"[DB Setup] ì¤‘ë³µëœ Item ID ë°œê²¬: {item.itemID}. ë¬´ì‹œë¨.");
                 continue;
             }
-            itemDatabase.Add(item.itemID, item);
+            itemDatabase.Add(item);
         }
 
-        Debug.Log($"Item Database ÃÊ±âÈ­ ¿Ï·á. ÃÑ {itemDatabase.Count}°³ÀÇ ¾ÆÀÌÅÛ ·ÎµåµÊ.");
+        Debug.Log($"Item Database ì´ˆê¸°í™” ì™„ë£Œ ({itemDatabase.Count}ê°œ ì•„ì´í…œ ë¡œë“œ).");
+    }
+
+    // List<ItemData>ì—ì„œ ItemData ê²€ìƒ‰
+    public ItemData GetItemData(string itemID)
+    {
+        return itemDatabase.Find(item => item.itemID == itemID);
     }
 
     private Inventory FindPlayerInventory(int actorNumber)
     {
+        // ì´ ë¡œì§ì€ í•´ë‹¹ ActorNumberì˜ Ownerë¥¼ ê°€ì§„ PhotonViewì—ì„œ Inventory ì»´í¬ë„ŒíŠ¸ë¥¼ ì°¾ìŠµë‹ˆë‹¤.
         foreach (PhotonView view in FindObjectsOfType<PhotonView>())
         {
             if (view.Owner != null && view.Owner.ActorNumber == actorNumber)
@@ -66,95 +81,183 @@ public class ServerMasterClient : MonoBehaviourPunCallbacks
         return null;
     }
 
-    // ¾ÆÀÌÅÛ ±¸¸Å ¿©ºÎ ÆÇº° (¸¶½ºÅÍ Å¬¶óÀÌ¾ğÆ®¿¡¼­ ½ÇÇà)
-    [PunRPC]
-    public void RpcRequestBuyItem(string itemID, Photon.Realtime.Player requesterPlayer, PhotonMessageInfo info)
+    public int GetCharmedCount(int actorNumber)
     {
-        // 1. º¸¾È Ã¼Å©(¸¶½ºÅÍ Å¬¶óÀÌ¾ğÆ®¿¡¼­¸¸ ½ÇÇà)
+        return charmedCountPerPlayer.TryGetValue(actorNumber, out var v) ? v : 0;
+    }
+
+    [PunRPC]
+    public void RpcRequestBuyItem(string itemID, Player requesterPlayer)
+    {
         if (!PhotonNetwork.IsMasterClient) return;
 
-        // PhotonMessageInfo ´ë½Å Àü´Ş¹ŞÀº Player °´Ã¼¿¡¼­ Á¤º¸¸¦ °¡Á®¿É´Ï´Ù.
-        int requesterActorID = requesterPlayer.ActorNumber;
-        string requesterNickName = requesterPlayer.NickName;
+        ItemData itemData = GetItemData(itemID);
 
-        Debug.Log($"[Server] ¾ÆÀÌÅÛ ±¸¸Å ¿äÃ»: {requesterNickName} (ID: {requesterActorID}) -> ¾ÆÀÌÅÛ: {itemID}");
-
-        // 1. ¾ÆÀÌÅÛ µ¥ÀÌÅÍº£ÀÌ½º¿¡¼­ ¾ÆÀÌÅÛ Á¤º¸(°¡°İ)¸¦ Á¶È¸
-        if (!itemDatabase.TryGetValue(itemID, out ItemData itemData))
+        if (itemData == null)
         {
-            Debug.LogError($"[Server] ¾Ë ¼ö ¾ø´Â ¾ÆÀÌÅÛ ID: {itemID} ¿äÃ»ÀÌ µé¾î¿Ô½À´Ï´Ù.");
+            Debug.LogWarning($"[Server] êµ¬ë§¤ ìš”ì²­ëœ ItemID: {itemID}ë¥¼ ë°ì´í„°ë² ì´ìŠ¤ì—ì„œ ì°¾ì„ ìˆ˜ ì—†ìŠµë‹ˆë‹¤.");
             return;
         }
 
-        Inventory targetInventory = FindPlayerInventory(requesterActorID);
+        int requesterActorID = requesterPlayer.ActorNumber;
+        Inventory playerInventory = FindPlayerInventory(requesterActorID);
 
-        if (targetInventory != null)
+        if (playerInventory != null && playerInventory.CanAfford(itemData.price))
         {
-            if (targetInventory.CanAfford(itemData.price))
-            {
-                Debug.Log($"[Server] {requesterNickName}ÀÇ ±¸¸Å ½ÂÀÎ.");
-
-                // ÀÏ¹İÀûÀ¸·Î InventoryÀÇ »óÅÂ º¯°æÀº All ¶Ç´Â Others·Î Àü¼ÛµË´Ï´Ù.
-                targetInventory.pv.RPC("RpcExecuteBuy", RpcTarget.All, itemID, itemData.price);
-            }
-            else
-            {
-                Debug.Log($"[Server] ±¸¸Å °ÅÀı: {requesterNickName}ÀÇ °ñµå°¡ ºÎÁ·ÇÕ´Ï´Ù.");
-            }
-        }
-        else
-        {
-            Debug.LogError($"[Server] Actor ID {requesterActorID}¿¡ ÇØ´çÇÏ´Â Inventory ÄÄÆ÷³ÍÆ®¸¦ Ã£À» ¼ö ¾ø½À´Ï´Ù.");
+            // ì¸ë²¤í† ë¦¬ì— êµ¬ë§¤ RPCë¥¼ ìš”ì²­í•©ë‹ˆë‹¤.
+            playerInventory.pv.RPC("RpcExecuteBuy", RpcTarget.All, itemID, itemData.price);
         }
     }
 
-    // È£°¨µµ º¯°æ ¿äÃ» (¼±¹°/´ëÈ­ ¼±ÅÃ ·ÎÁ÷ ÅëÇÕ)
+
+    // NPC í˜¸ê°ë„ ë³€ê²½ RPC
     [PunRPC]
     public void RpcRequestChangeLikability(int requesterActorID, int npcViewID, int likabilityChange, string giftItemID = null)
     {
         if (!PhotonNetwork.IsMasterClient) return;
 
         PhotonView npcView = PhotonView.Find(npcViewID);
+        if (npcView == null) return;
 
-        if (npcView != null)
+        NPC targetNPC = npcView.GetComponent<NPC>();
+        Inventory targetInventory = FindPlayerInventory(requesterActorID);
+
+        if (targetNPC == null) return;
+
+        // ì´ë¯¸ ë§¤í˜¹ë˜ì—ˆê³ , ë§¤í˜¹í•œ í”Œë ˆì´ì–´ì™€ ìš”ì²­ìê°€ ë‹¤ë¥´ë©´ ì‹¤íŒ¨
+        if (targetNPC.charmedByActorNumber != 0 && targetNPC.charmedByActorNumber != requesterActorID) return;
+
+        // ì„ ë¬¼ ì²˜ë¦¬: ì•„ì´í…œì´ ìˆìœ¼ë©´ ì œê±°í•˜ê³  ê³„ì† ì§„í–‰
+        if (!string.IsNullOrEmpty(giftItemID) && targetInventory != null)
         {
-            NPC targetNPC = npcView.GetComponent<NPC>();
-            Inventory targetInventory = FindPlayerInventory(requesterActorID);
-
-            // ¼±¹°ÇÏ±â ·ÎÁ÷ (giftItemID°¡ ÀÖÀ» °æ¿ì)
-            if (!string.IsNullOrEmpty(giftItemID) && targetInventory != null)
+            if (targetInventory.HasItem(giftItemID))
             {
-                bool hasItem = targetInventory.HasItem(giftItemID);
-
-                if (hasItem)
-                {
-                    // ¾ÆÀÌÅÛ Á¦°Å (InventoryÀÇ RPC¸¦ È£ÃâÇØ¾ß ¾ÈÀüÇÔ)
-                    targetInventory.pv.RPC("RemoveItem", RpcTarget.All, giftItemID);
-                    Debug.Log($"[Server] {targetInventory.pv.Owner.NickName}ÀÇ NPC ¼±¹° ½ÂÀÎ. ¾ÆÀÌÅÛ ({giftItemID}) Á¦°ÅµÊ.");
-                }
-                else
-                {
-                    Debug.LogWarning($"[Server] È£°¨µµ ¿äÃ» °ÅºÎ: ÇÃ·¹ÀÌ¾î({requesterActorID})°¡ ¾ÆÀÌÅÛ({giftItemID})À» °¡Áö°í ÀÖÁö ¾Ê½À´Ï´Ù.");
-                    return;
-                }
-            }
-            // ¼±¹° ·ÎÁ÷ Á¾·á
-
-            if (targetNPC != null)
-            {
-                Debug.Log($"[Server] ÇÃ·¹ÀÌ¾î {requesterActorID}ÀÇ »óÈ£ÀÛ¿ë ½ÂÀÎ. NPC È£°¨µµ {likabilityChange} º¯°æ ¸í·É.");
-
-                // NPC¿¡°Ô È£°¨µµ¸¦ º¯°æÇÏ¶ó°í ¸ğµç Å¬¶óÀÌ¾ğÆ®¿¡°Ô RPC È£Ãâ
-                npcView.RPC("RpcChangeLikability", RpcTarget.All, likabilityChange);
+                // RemoveItem RPC í˜¸ì¶œ (ì•„ì´í…œ ì‚¬ìš©)
+                targetInventory.pv.RPC("RemoveItem", RpcTarget.All, giftItemID);
             }
             else
             {
-                Debug.LogError($"[Server] ViewID {npcViewID}ÀÇ ¿ÀºêÁ§Æ®¿¡ NPC ÄÄÆ÷³ÍÆ®°¡ ¾ø½À´Ï´Ù.");
+                return; // ì•„ì´í…œì´ ì—†ìœ¼ë©´ ì‹¤íŒ¨
             }
+        }
+
+        // í˜¸ê°ë„ ë³€ê²½
+        int preLikability = targetNPC.likability;
+        int postLikability = preLikability + likabilityChange;
+        targetNPC.likability = postLikability;
+
+        // ë§¤í˜¹ ì¡°ê±´ í™•ì¸ ë° ì ìˆ˜ ì—…ë°ì´íŠ¸
+        if (targetNPC.charmedByActorNumber == 0 && postLikability >= targetNPC.charmThreshold)
+        {
+            targetNPC.charmedByActorNumber = requesterActorID;
+
+            if (!charmedCountPerPlayer.ContainsKey(requesterActorID))
+                charmedCountPerPlayer[requesterActorID] = 0;
+            charmedCountPerPlayer[requesterActorID]++;
+
+            // ëª¨ë“  í´ë¼ì´ì–¸íŠ¸ì— ì ìˆ˜ ì—…ë°ì´íŠ¸ë¥¼ ì•Œë¦½ë‹ˆë‹¤.
+            pv.RPC("RpcUpdateCharmedCount", RpcTarget.All, requesterActorID, charmedCountPerPlayer[requesterActorID]);
+        }
+
+        // NPC ìì‹ ì—ê²Œ í˜¸ê°ë„ ë³€ê²½ì„ ì•Œë ¤ UI ì—…ë°ì´íŠ¸ ë“±ì„ ìˆ˜í–‰í•˜ê²Œ í•©ë‹ˆë‹¤.
+        npcView.RPC("RpcChangeLikability", RpcTarget.All, likabilityChange);
+    }
+
+    [PunRPC]
+    public void RpcUpdateCharmedCount(int actorNumber, int newCount)
+    {
+        // ì ìˆ˜ ì—…ë°ì´íŠ¸ ì‹œ ë””ë²„ê·¸ ë¡œê·¸ë¥¼ ì¶œë ¥í•©ë‹ˆë‹¤.
+        var timer = FindObjectOfType<MiniGameTimer>();
+        if (timer != null)
+            Debug.Log($"[ServerMasterClient] Player {actorNumber} í˜„ì¬ ì ìˆ˜: {newCount}");
+    }
+
+    /// <summary>
+    /// ê²Œì„ ì¢…ë£Œ ì‹œ í˜¸ì¶œë˜ì–´ ìŠ¹ìë¥¼ íŒì •í•˜ê³  ê²°ê³¼ë¥¼ ì „íŒŒí•©ë‹ˆë‹¤. (ë§ˆìŠ¤í„° ì „ìš©)
+    /// </summary>
+    public void AnnounceWinner()
+    {
+        if (!PhotonNetwork.IsMasterClient) return;
+
+        int winnerActor = 0;
+        int topScore = int.MinValue;
+        int tieCount = 0;
+
+        // 1. ìµœê³  ì ìˆ˜ ê³„ì‚°
+        foreach (var p in PhotonNetwork.CurrentRoom.Players)
+        {
+            int actor = p.Value.ActorNumber;
+            int score = GetCharmedCount(actor);
+            if (score > topScore) { topScore = score; winnerActor = actor; tieCount = 1; }
+            else if (score == topScore) { tieCount++; }
+        }
+
+        // 2. ë™ì  ì²˜ë¦¬ (ë™ì  ì‹œ ìŠ¹ì ì—†ìŒ = 0)
+        if (tieCount >= 2) winnerActor = 0;
+
+        // 3. P1/P2 ì ìˆ˜ ê³„ì‚° (ìµœëŒ€ 2ì¸ í”Œë ˆì´ì–´ë¡œ ê°€ì •)
+        int p1Actor = 0, p1Score = 0, p2Actor = 0, p2Score = 0;
+        if (PhotonNetwork.CurrentRoom.PlayerCount >= 1)
+        {
+            var a = PhotonNetwork.PlayerList[0].ActorNumber;
+            p1Actor = a; p1Score = GetCharmedCount(a);
+        }
+        if (PhotonNetwork.CurrentRoom.PlayerCount >= 2)
+        {
+            var b = PhotonNetwork.PlayerList[1].ActorNumber;
+            p2Actor = b; p2Score = GetCharmedCount(b);
+        }
+
+        // 4. ëª¨ë“  í´ë¼ì´ì–¸íŠ¸ì— RPCë¡œ ê²°ê³¼ ì „íŒŒ
+        pv.RPC("RpcAnnounceWinner", RpcTarget.All, winnerActor, p1Actor, p1Score, p2Actor, p2Score);
+    }
+
+    [PunRPC]
+    public void RpcAnnounceWinner(int winnerActorNumber, int p1Actor, int p1Score, int p2Actor, int p2Score)
+    {
+        string message;
+
+        if (winnerActorNumber == 0)
+        {
+            message = $"ë¬´ìŠ¹ë¶€!\nP1: {p1Score} | P2: {p2Score}";
         }
         else
         {
-            Debug.LogError($"[Server] ViewID {npcViewID}¿¡ ÇØ´çÇÏ´Â NPC ¿ÀºêÁ§Æ®¸¦ Ã£À» ¼ö ¾ø½À´Ï´Ù.");
+            string winnerName = "(ì•Œ ìˆ˜ ì—†ìŒ)";
+            foreach (var p in PhotonNetwork.PlayerList)
+            {
+                if (p.ActorNumber == winnerActorNumber)
+                {
+                    winnerName = p.NickName;
+                    break;
+                }
+            }
+
+            message = $"ìŠ¹ì: {winnerName}\n\nP1: {p1Score} | P2: {p2Score}";
         }
+
+        // MiniGameTimerì˜ RPCë¥¼ í˜¸ì¶œí•˜ì—¬ ê²°ê³¼ UI í‘œì‹œ ìš”ì²­
+        MiniGameTimer timer = FindObjectOfType<MiniGameTimer>();
+        if (timer != null)
+        {
+            timer.GetComponent<PhotonView>()?.RPC("RpcShowResult", RpcTarget.All, message);
+        }
+
+        Debug.Log($"[ServerMasterClient] ê²Œì„ ì¢…ë£Œ! {message}");
+    }
+
+    /// <summary>
+    /// ë°©ì„ ë‚˜ê°ˆ ë•Œ (ê²Œì„ ì¢…ë£Œ í›„ ë¡œë¹„ ì´ë™ ì‹œ) ì‹±ê¸€í†¤ ê°ì²´ë¥¼ ì •ë¦¬í•˜ê³  ì”¬ì„ ì „í™˜í•©ë‹ˆë‹¤.
+    /// </summary>
+    public override void OnLeftRoom()
+    {
+        if (Instance == this)
+        {
+            Instance = null;
+        }
+        // DontDestroyOnLoad ê°ì²´ íŒŒê´´
+        Destroy(gameObject);
+
+        Debug.Log("[ServerMasterClient] OnLeftRoom: ì‹±ê¸€í†¤ ì •ë¦¬ ì™„ë£Œ. ë¡œë¹„ ì”¬ìœ¼ë¡œ ì´ë™í•©ë‹ˆë‹¤.");
     }
 }

@@ -43,6 +43,10 @@ MonoBehaviour:
   - RpcChangeLikability
   - RpcExecuteBuy
   - RpcRequestChangeLikability
+  - RpcAnnounceWinner
+  - RpcShowResult
+  - RpcUpdateCharmedCount
+  - RemoveItem
   DisableAutoOpenWizard: 1
   ShowSettings: 0
   DevRegionSetOnce: 1

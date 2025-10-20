@@ -2,15 +2,26 @@
 using UnityEngine;
 using Photon.Pun;
 using Photon.Realtime;
+using System.Linq;
 
-// IPunObservable을 상속받아 Gold 변수의 상태를 동기화합니다.
 public class Inventory : MonoBehaviourPunCallbacks, IPunObservable
 {
     public PhotonView pv;
 
-    // 아이템 ID(string)와 수량(int)을 추적하는 Dictionary를 사용합니다.
-    private Dictionary<string, int> items = new Dictionary<string, int>();
+    [System.Serializable]
+    public struct ItemEntry
+    {
+        public string itemID;
+        public int quantity;
 
+        public ItemEntry(string id, int qty)
+        {
+            itemID = id;
+            quantity = qty;
+        }
+    }
+
+    private List<ItemEntry> items = new List<ItemEntry>();
     public int gold = 100;
 
     void Awake()
@@ -26,10 +37,7 @@ public class Inventory : MonoBehaviourPunCallbacks, IPunObservable
         }
     }
 
-    /// <summary>
-    /// UIManager가 인벤토리 데이터를 읽어갈 수 있도록 하는 Getter 메서드입니다.
-    /// </summary>
-    public Dictionary<string, int> GetItems()
+    public List<ItemEntry> GetItems()
     {
         return items;
     }
@@ -42,38 +50,24 @@ public class Inventory : MonoBehaviourPunCallbacks, IPunObservable
     [PunRPC]
     public void RpcExecuteBuy(string itemID, int price)
     {
-        // 1. 골드 차감 
-        gold -= price;
+        gold -= price;
 
-        // 2. 인벤토리에 아이템 추가
-        if (items.ContainsKey(itemID))
-        {
-            items[itemID]++;
-        }
-        else
-        {
-            items.Add(itemID, 1);
-        }
+        Debug.Log($"[Inventory] 아이템 [{itemID}] {1}개가 구매되어 인벤토리에 들어왔습니다."); // 아이템 획득 주석
+        AddItemToList(itemID, 1);
 
-        // 3. UI 업데이트: 로컬 클라이언트에서만 실행 
-        if (pv.IsMine)
+
+        if (pv.IsMine)
         {
-            UpdateLocalUI();
+            UpdateLocalUI(); 
         }
 
         Debug.Log($"[Inventory] {pv.Owner.NickName} 구매 실행 완료: {itemID}. 남은 골드: {gold}");
     }
 
+    // 인벤토리에 아이템을 추가하는 일반 메서드 (RPC 아님)
     public void AddItem(string itemID, int quantity = 1)
     {
-        if (items.ContainsKey(itemID))
-        {
-            items[itemID] += quantity;
-        }
-        else
-        {
-            items.Add(itemID, quantity);
-        }
+        AddItemToList(itemID, quantity);
 
         if (pv.IsMine)
         {
@@ -81,14 +75,49 @@ public class Inventory : MonoBehaviourPunCallbacks, IPunObservable
         }
     }
 
-    public void RemoveItem(string itemID, int quantity = 1)
+    private void AddItemToList(string itemID, int quantity)
     {
-        if (items.ContainsKey(itemID))
+        // 1. 이미 존재하는 아이템인지 찾기
+        // FindIndex를 사용하여 ItemEntry의 itemID가 일치하는지 확인합니다.
+        int index = items.FindIndex(entry => entry.itemID == itemID);
+
+        if (index != -1)
         {
-            items[itemID] -= quantity;
-            if (items[itemID] <= 0)
+            // 2. 이미 존재: 수량 증가 후 업데이트
+            ItemEntry existingEntry = items[index];
+            existingEntry.quantity += quantity;
+            items[index] = existingEntry;
+
+            Debug.Log($"[AddItemToList] 기존 아이템 수량 증가: {itemID}, 새 수량: {existingEntry.quantity}");
+        }
+        else
+        {
+            // 3. 새 아이템: 리스트에 추가
+            items.Add(new ItemEntry(itemID, quantity));
+
+            Debug.Log($"[AddItemToList] 새 아이템 추가: {itemID}, 수량: {quantity}");
+        }
+    }
+
+    [PunRPC]
+    public void RemoveItem(string itemID)
+    {
+        int quantityToRemove = 1;
+
+        int index = items.FindIndex(entry => entry.itemID == itemID);
+
+        if (index != -1)
+        {
+            ItemEntry existingEntry = items[index];
+            existingEntry.quantity -= quantityToRemove;
+
+            if (existingEntry.quantity <= 0)
             {
-                items.Remove(itemID);
+                items.RemoveAt(index);
+            }
+            else
+            {
+                items[index] = existingEntry;
             }
         }
 
@@ -100,46 +129,50 @@ public class Inventory : MonoBehaviourPunCallbacks, IPunObservable
 
     public bool HasItem(string itemID)
     {
-        return items.ContainsKey(itemID) && items[itemID] > 0;
+        ItemEntry entry = items.Find(e => e.itemID == itemID);
+        return entry.quantity > 0;
     }
 
-    // UI 업데이트 함수: 로컬 플레이어 전용
-    private void UpdateLocalUI()
+    private void UpdateLocalUI()
     {
+        if (items.Count == 0)
+        {
+            Debug.Log("Inventory is empty.");
+        }
+        else
+        {
+            foreach (var entry in items)
+            {
+                Debug.Log($"Item ID: {entry.itemID}, Quantity: {entry.quantity}");
+            }
+        }
+
         if (UIManager.instance != null)
         {
-            // 골드 텍스트 업데이트
-            UIManager.instance.UpdateGoldText(gold);
+            UIManager.instance.UpdateGoldText(gold);
 
-            // 인벤토리 패널이 열려있는 경우에만 목록 UI 업데이트
-            if (UIManager.instance.inventoryPanel != null && UIManager.instance.inventoryPanel.activeInHierarchy)
+            // 인벤토리 패널이 열려 있는 경우에만 아이템 목록을 갱신
+            if (UIManager.instance.inventoryPanel != null && UIManager.instance.inventoryPanel.activeInHierarchy)
             {
                 UIManager.instance.UpdateInventoryUI();
             }
         }
     }
 
-    /// <summary>
-    /// Gold 변수의 상태 동기화 로직입니다.
-    /// 이 메서드가 작동하려면 PhotonView 컴포넌트의 Observed Components에 Inventory 스크립트가 할당되어 있어야 합니다.
-    /// </summary>
-    public void OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)
+    public void OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)
     {
         if (stream.IsWriting)
         {
-            // 소유 클라이언트: 현재 골드 값을 모든 원격 클라이언트에게 보냅니다.
-            stream.SendNext(gold);
+            stream.SendNext(gold);
         }
         else
         {
-            // 원격 클라이언트: 소유자가 보낸 골드 값을 받습니다.
-            int receivedGold = (int)stream.ReceiveNext();
+            int receivedGold = (int)stream.ReceiveNext();
 
             if (gold != receivedGold)
             {
                 gold = receivedGold;
 
-                // [수정] 동기화된 값이 변경되었을 때, 이 인벤토리가 로컬 플레이어의 것이라면 UI를 갱신합니다.
                 if (pv.IsMine)
                 {
                     UpdateLocalUI();

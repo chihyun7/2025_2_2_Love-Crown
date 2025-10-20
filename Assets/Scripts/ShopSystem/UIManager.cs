@@ -1,9 +1,10 @@
+ï»¿using Photon.Pun;
+using System;
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
-using TMPro;
-using System;
-using Photon.Pun;
+using static UnityEngine.EventSystems.EventTrigger;
 
 public class UIManager : MonoBehaviour
 {
@@ -21,7 +22,7 @@ public class UIManager : MonoBehaviour
     [Header("Layout & Prefabs")]
     public Transform shopContent;
     public Transform inventoryContent;
-    public GameObject itemSlotPrefab; // ItemSlot ½ºÅ©¸³Æ®°¡ ºÙ¾î ÀÖ´Ù°í °¡Á¤
+    public GameObject itemSlotPrefab; // ItemSlot ìŠ¤í¬ë¦½íŠ¸ê°€ ë¶™ì–´ ìˆë‹¤ê³  ê°€ì •
 
     private Inventory localInventory;
 
@@ -39,52 +40,38 @@ public class UIManager : MonoBehaviour
 
     void Start()
     {
-        // Start ½ÃÁ¡¿¡ ÀÎº¥Åä¸®¸¦ Ã£°í, ½ÇÆĞÇÏ¸é ÀÏÁ¤ ½Ã°£ ÈÄ ´Ù½Ã ½ÃµµÇÏ´Â ·ÎÁ÷À» ½ÃÀÛÇÕ´Ï´Ù.
         FindLocalPlayerInventory();
     }
 
-    /// <summary>
-    /// ·ÎÄÃ ÇÃ·¹ÀÌ¾îÀÇ Inventory ÄÄÆ÷³ÍÆ®¸¦ Ã£¾Æ ÇÒ´çÇÕ´Ï´Ù.
-    /// </summary>
     public void FindLocalPlayerInventory()
     {
         Inventory[] inventories = FindObjectsOfType<Inventory>();
 
         foreach (Inventory inv in inventories)
         {
-            // PhotonViewÀÇ ¼ÒÀ¯ÀÚ°¡ ·ÎÄÃ ÇÃ·¹ÀÌ¾îÀÎÁö È®ÀÎ
             if (inv.pv != null && inv.pv.IsMine)
             {
                 localInventory = inv;
-                Debug.Log("UIManager: ·ÎÄÃ ÇÃ·¹ÀÌ¾î ÀÎº¥Åä¸® Ã£À½");
-
-                // Ã£Àº ÈÄ Áï½Ã ÃÊ±â °ñµå UI ¾÷µ¥ÀÌÆ®
+                Debug.Log("UIManager: ë¡œì»¬ í”Œë ˆì´ì–´ ì¸ë²¤í† ë¦¬ ì°¾ìŒ");
                 UpdateGoldText(localInventory.gold);
-
-                // ¼º°øÇßÀ¸¹Ç·Î ¿¹Á¤µÈ Àç½Ãµµ Invoke¸¦ Ãë¼ÒÇÕ´Ï´Ù.
                 CancelInvoke("RetryFindLocalPlayerInventory");
                 return;
             }
         }
 
-        // ·ÎÄÃ ÀÎº¥Åä¸®¸¦ ¾ÆÁ÷ Ã£Áö ¸øÇß´Ù¸é 1ÃÊ µÚ¿¡ Àç½Ãµµ¸¦ ¿¹¾àÇÕ´Ï´Ù.
         if (localInventory == null && !IsInvoking("RetryFindLocalPlayerInventory"))
         {
-            Debug.LogWarning("UIManager: ·ÎÄÃ ÇÃ·¹ÀÌ¾î ÀÎº¥Åä¸®¸¦ ¾ÆÁ÷ Ã£Áö ¸øÇß½À´Ï´Ù. 1ÃÊ ÈÄ Àç½Ãµµ ¿¹¾à.");
+            Debug.LogWarning("UIManager: ë¡œì»¬ í”Œë ˆì´ì–´ ì¸ë²¤í† ë¦¬ë¥¼ ì•„ì§ ì°¾ì§€ ëª»í–ˆìŠµë‹ˆë‹¤. 1ì´ˆ í›„ ì¬ì‹œë„ ì˜ˆì•½.");
             Invoke("RetryFindLocalPlayerInventory", 1.0f);
         }
     }
 
     private void RetryFindLocalPlayerInventory()
     {
-        // FindLocalPlayerInventory¸¦ ´Ù½Ã ½ÇÇàÇÏ¿© Àç½ÃµµÇÕ´Ï´Ù.
         FindLocalPlayerInventory();
     }
 
 
-    /// <summary>
-    /// Inventory.cs¿¡¼­ È£ÃâµÇ´Â °ñµå UI ¾÷µ¥ÀÌÆ® ÇÔ¼öÀÔ´Ï´Ù.
-    /// </summary>
     public void UpdateGoldText(int currentGold)
     {
         if (goldText != null)
@@ -95,12 +82,11 @@ public class UIManager : MonoBehaviour
 
     public void ToggleInventoryPanel()
     {
-        // ·ÎÄÃ ÀÎº¥Åä¸®°¡ ÇÒ´çµÇÁö ¾Ê¾Ò´Ù¸é ´Ù½Ã Ã£½À´Ï´Ù.
         if (localInventory == null) FindLocalPlayerInventory();
 
         if (localInventory == null)
         {
-            Debug.LogError("·ÎÄÃ ÀÎº¥Åä¸®°¡ ÇÒ´çµÇÁö ¾Ê¾Æ ÀÎº¥Åä¸® ÆĞ³ÎÀ» ¿­ ¼ö ¾ø½À´Ï´Ù.");
+            Debug.LogError("ë¡œì»¬ ì¸ë²¤í† ë¦¬ê°€ í• ë‹¹ë˜ì§€ ì•Šì•„ ì¸ë²¤í† ë¦¬ íŒ¨ë„ì„ ì—´ ìˆ˜ ì—†ìŠµë‹ˆë‹¤.");
             return;
         }
 
@@ -137,7 +123,14 @@ public class UIManager : MonoBehaviour
             GameObject slotGO = Instantiate(itemSlotPrefab, shopContent);
             ItemSlot slot = slotGO.GetComponent<ItemSlot>();
 
-            slot.Initialize(item, () => ShowConfirmationPopup(item, shopInstance));
+            if (slot != null)
+            {
+                slot.Initialize(item, () => ShowConfirmationPopup(item, shopInstance));
+            }
+            else
+            {
+                Debug.LogError("ItemSlot í”„ë¦¬íŒ¹ì— ItemSlot ì»´í¬ë„ŒíŠ¸ê°€ ëˆ„ë½ë˜ì—ˆìŠµë‹ˆë‹¤!");
+            }
         }
     }
 
@@ -157,13 +150,13 @@ public class UIManager : MonoBehaviour
 
 
     /// <summary>
-    /// Inventory.csÀÇ Dictionary<string, int> ±¸Á¶¸¦ ¹İ¿µÇÏ¿© UI¸¦ ±×¸³´Ï´Ù.
+    /// Inventory.csì˜ List<ItemEntry> êµ¬ì¡°ë¥¼ ë°˜ì˜í•˜ì—¬ UIë¥¼ ê·¸ë¦½ë‹ˆë‹¤.
     /// </summary>
     public void UpdateInventoryUI()
     {
-        if (localInventory == null)
+        if (localInventory == null || ServerMasterClient.Instance == null)
         {
-            Debug.LogError("·ÎÄÃ ÀÎº¥Åä¸®°¡ ÁØºñµÇÁö ¾Ê¾Ò½À´Ï´Ù.");
+            Debug.LogError("ë¡œì»¬ ì¸ë²¤í† ë¦¬ ë˜ëŠ” ServerMasterClientê°€ ì¤€ë¹„ë˜ì§€ ì•Šì•˜ìŠµë‹ˆë‹¤. UI ê°±ì‹  ì‹¤íŒ¨.");
             return;
         }
 
@@ -172,27 +165,64 @@ public class UIManager : MonoBehaviour
             Destroy(child.gameObject);
         }
 
-        Dictionary<string, int> currentItems = localInventory.GetItems();
+        List<Inventory.ItemEntry> currentItems = localInventory.GetItems();
+
+
+        Debug.Log("--- UIManager: ì¸ë²¤í† ë¦¬ UI ê°±ì‹  ì¤‘ ---");
+
+        if (currentItems == null || currentItems.Count == 0)
+        {
+            Debug.Log("ì¸ë²¤í† ë¦¬ê°€ í˜„ì¬ ë¹„ì–´ìˆìŠµë‹ˆë‹¤ (0ê°œ).");
+        }
+        else
+        {
+            Debug.Log($"ì¸ë²¤í† ë¦¬ ì•„ì´í…œ ë°œê²¬: {currentItems.Count} ì¢…ë¥˜.");
+            foreach (var entry in currentItems)
+            {
+                Debug.Log($"   -> ì•„ì´í…œ ID: {entry.itemID}, ìˆ˜ëŸ‰: {entry.quantity}ê°œ");
+            }
+        }
+
+        Debug.Log("------------------------------------------");
+
 
         if (currentItems == null) return;
 
-        foreach (KeyValuePair<string, int> itemEntry in currentItems)
+        foreach (Inventory.ItemEntry itemEntry in currentItems)
         {
-            string itemID = itemEntry.Key;
-            int quantity = itemEntry.Value;
+            string itemID = itemEntry.itemID;
+            int quantity = itemEntry.quantity;
 
             if (quantity > 0)
             {
-                GameObject slotGO = Instantiate(itemSlotPrefab, inventoryContent);
+                // ItemData ë¡œë“œëŠ” ServerMasterClientê°€ ë‹´ë‹¹í•œë‹¤ê³  ê°€ì •
+                ItemData data = ServerMasterClient.Instance.GetItemData(itemID);
 
-                TextMeshProUGUI itemText = slotGO.GetComponentInChildren<TextMeshProUGUI>();
-                if (itemText != null)
+                if (data == null)
                 {
-                    itemText.text = $"{itemID} ({quantity})";
+                    Debug.LogError($"[UIManager ERROR] ItemDataë¥¼ ì°¾ì„ ìˆ˜ ì—†ìŠµë‹ˆë‹¤. ItemID: '{itemID}'.");
+                    continue;
+                }
+
+                GameObject slotGO = Instantiate(itemSlotPrefab, inventoryContent);
+                ItemSlot slotComponent = slotGO.GetComponent<ItemSlot>();
+
+                if (slotComponent != null)
+                {
+                    slotComponent.SetItem(data, quantity); // ItemSlot.SetItemì—ì„œ ë²„íŠ¼ì´ í™œì„±í™”ë¨
                 }
                 else
                 {
-                    Debug.LogWarning($"ItemSlot ÇÁ¸®ÆÕ¿¡ TextMeshProUGUI ÄÄÆ÷³ÍÆ®°¡ ¾ø½À´Ï´Ù. ID: {itemID}");
+                    // ItemSlot ì»´í¬ë„ŒíŠ¸ê°€ ì—†ì„ ê²½ìš° ëŒ€ì²´ ë¡œì§
+                    TextMeshProUGUI itemText = slotGO.GetComponentInChildren<TextMeshProUGUI>();
+                    if (itemText != null)
+                    {
+                        itemText.text = $"{data.itemName} ({quantity})";
+                    }
+                    else
+                    {
+                        Debug.LogWarning($"ItemSlot í”„ë¦¬íŒ¹ì— ItemSlot ë° TextMeshProUGUI ì»´í¬ë„ŒíŠ¸ê°€ ì—†ìŠµë‹ˆë‹¤. ID: {itemID}");
+                    }
                 }
             }
         }
@@ -201,7 +231,7 @@ public class UIManager : MonoBehaviour
     private void ShowConfirmationPopup(ItemData item, Shop shopInstance)
     {
         confirmationPanel.SetActive(true);
-        confirmText.text = item.itemName + "À»(¸¦) ±¸¸ÅÇÏ½Ã°Ú½À´Ï±î?";
+        confirmText.text = item.itemName + "ì„(ë¥¼) êµ¬ë§¤í•˜ì‹œê² ìŠµë‹ˆê¹Œ?";
 
         yesButton.onClick.RemoveAllListeners();
         yesButton.onClick.AddListener(() =>
@@ -212,7 +242,7 @@ public class UIManager : MonoBehaviour
             }
             else
             {
-                Debug.Log("°ñµå°¡ ºÎÁ·ÇÕ´Ï´Ù.");
+                Debug.Log("ê³¨ë“œê°€ ë¶€ì¡±í•©ë‹ˆë‹¤.");
             }
             confirmationPanel.SetActive(false);
         });
