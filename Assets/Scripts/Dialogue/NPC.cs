@@ -19,6 +19,14 @@ public class NPC : MonoBehaviour
     [Header("NPC 상태")]
     public int likability = 0;
 
+    [Header("미니게임 선점 시스템")]
+    [Tooltip("이 값 이상이 되면 NPC가 특정 플레이어에게 선점됩니다.")]
+    public int charmThreshold = 70;
+
+    [HideInInspector]
+    public int charmedByActorNumber = 0;
+
+
     private Inventory localPlayerInventory = null;
     private bool playerIsClose = false;
 
