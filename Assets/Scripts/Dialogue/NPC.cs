@@ -1,14 +1,15 @@
-using Photon.Pun;
+ï»¿using Photon.Pun;
 using System.Collections.Generic;
 using Unity.VisualScripting;
 using UnityEngine;
+using Photon.Realtime; // Photon.Realtime.Player ë“±ì˜ íƒ€ì… ì‚¬ìš©ì„ ìœ„í•´ ì¶”ê°€í•  ìˆ˜ ìˆìŒ (í˜„ì¬ ì½”ë“œì—ëŠ” ë¶ˆí•„ìš”)
 
 public class NPC : MonoBehaviour
 {
-    [Header("±âº» ´ëÈ­")]
+    [Header("ê¸°ë³¸ ëŒ€í™”")]
     public Dialogue regularDialogue;
 
-    [Header("¼±¹° °ü·Ã ¼³Á¤")]
+    [Header("ì„ ë¬¼ ê´€ë ¨ ì„¤ì •")]
     public List<string> preferredItemIDs;
     public Dialogue thankYouDialogue;
     public int likabilityBonus = 25;
@@ -16,11 +17,11 @@ public class NPC : MonoBehaviour
     public List<string> rejectedItemIDs;
     public Dialogue rejectionDialogue;
 
-    [Header("NPC »óÅÂ")]
+    [Header("NPC ìƒíƒœ")]
     public int likability = 0;
 
-    [Header("¹Ì´Ï°ÔÀÓ ¼±Á¡ ½Ã½ºÅÛ")]
-    [Tooltip("ÀÌ °ª ÀÌ»óÀÌ µÇ¸é NPC°¡ Æ¯Á¤ ÇÃ·¹ÀÌ¾î¿¡°Ô ¼±Á¡µË´Ï´Ù.")]
+    [Header("ë¯¸ë‹ˆê²Œì„ ì„ ì  ì‹œìŠ¤í…œ")]
+    [Tooltip("ì´ ê°’ ì´ìƒì´ ë˜ë©´ NPCê°€ íŠ¹ì • í”Œë ˆì´ì–´ì—ê²Œ ì„ ì ë©ë‹ˆë‹¤.")]
     public int charmThreshold = 70;
 
     [HideInInspector]
@@ -45,6 +46,13 @@ public class NPC : MonoBehaviour
     private bool RequestGiftInteraction()
     {
         string giftItemID = null;
+        PhotonView npcPV = this.GetComponent<PhotonView>();
+
+        if (npcPV == null)
+        {
+            Debug.LogError("NPCì— PhotonViewê°€ ì—†ìŠµë‹ˆë‹¤. RPC í˜¸ì¶œ ë¶ˆê°€.");
+            return false;
+        }
 
         foreach (string itemID in preferredItemIDs)
         {
@@ -52,12 +60,13 @@ public class NPC : MonoBehaviour
             {
                 giftItemID = itemID;
 
-                // ¸¶½ºÅÍ Å¬¶óÀÌ¾ğÆ®¿¡°Ô È£°¨µµ Áõ°¡ ¿äÃ»
+                // ğŸš¨ ìˆ˜ì •: RPC íŒŒë¼ë¯¸í„° ìˆœì„œë¥¼ ServerMasterClient.csì˜ ì •ì˜ì™€ ì¼ì¹˜ì‹œí‚µë‹ˆë‹¤.
+                // RpcRequestChangeLikability(int requesterActorID, int npcViewID, int likabilityChange, string giftItemID)
                 ServerMasterClient.Instance.pv.RPC("RpcRequestChangeLikability", RpcTarget.MasterClient,
-                    localPlayerInventory.pv.Owner.ActorNumber,
-                    this.GetComponent<PhotonView>().ViewID,
-                    giftItemID,
-                    likabilityBonus);
+                    localPlayerInventory.pv.Owner.ActorNumber,      // 1. requesterActorID (int)
+                    npcPV.ViewID,                                   // 2. npcViewID (int)
+                    likabilityBonus,                                // 3. likabilityChange (int)
+                    giftItemID);                                    // 4. giftItemID (string)
 
                 FindObjectOfType<DialogueManager>().StartDialogue(thankYouDialogue, this);
                 return true;
@@ -68,6 +77,7 @@ public class NPC : MonoBehaviour
         {
             if (localPlayerInventory.HasItem(itemID))
             {
+                // ê±°ì ˆë‹¹í•œ ì•„ì´í…œì€ í˜¸ê°ë„ ë³€ê²½ ìš”ì²­ì„ ë³´ë‚´ì§€ ì•Šê³ , ëŒ€í™”ë§Œ ì¶œë ¥
                 FindObjectOfType<DialogueManager>().StartDialogue(rejectionDialogue, this);
                 return true;
             }
@@ -79,9 +89,9 @@ public class NPC : MonoBehaviour
     [PunRPC]
     public void RpcChangeLikability(int likabilityChange)
     {
-        // ¸¶½ºÅÍ Å¬¶óÀÌ¾ğÆ®ÀÇ ¸í·ÉÀ» ¹Ş¾Æ È£°¨µµ¸¦ µ¿±âÈ­ÇÕ´Ï´Ù.
+        // ë§ˆìŠ¤í„° í´ë¼ì´ì–¸íŠ¸ì˜ ëª…ë ¹ì„ ë°›ì•„ í˜¸ê°ë„ë¥¼ ë™ê¸°í™”í•©ë‹ˆë‹¤.
         this.likability += likabilityChange;
-        Debug.Log($"NPC È£°¨µµ º¯°æ: {likabilityChange}. ÇöÀç È£°¨µµ: {this.likability}");
+        Debug.Log($"NPC í˜¸ê°ë„ ë³€ê²½: {likabilityChange}. í˜„ì¬ í˜¸ê°ë„: {this.likability}");
     }
 
     public void TriggerRegularDialogue()
