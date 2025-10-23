@@ -188,6 +188,9 @@ MonoBehaviour:
       choices: []
   likability: 0
   charmThreshold: 70
+  npcName: "\uBAA8\uBC94\uC0DD "
+  nameCanvasPrefab: {fileID: 3720368846967653217, guid: 18609f8ca88362e4da23a4259c9bd2a8,
+    type: 3}
   charmedByActorNumber: 0
 --- !u!136 &47934704
 CapsuleCollider:
@@ -2391,6 +2394,9 @@ MonoBehaviour:
       choices: []
   likability: 0
   charmThreshold: 70
+  npcName: "\uC6B4\uB3D9\uBD80 \uC120\uBC30"
+  nameCanvasPrefab: {fileID: 3720368846967653217, guid: 18609f8ca88362e4da23a4259c9bd2a8,
+    type: 3}
   charmedByActorNumber: 0
 --- !u!136 &636901984
 CapsuleCollider:

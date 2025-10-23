@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Unity.VisualScripting;
 using UnityEngine;
 using Photon.Realtime; // Photon.Realtime.Player 등의 타입 사용을 위해 추가할 수 있음 (현재 코드에는 불필요)
+using TMPro;
 
 public class NPC : MonoBehaviour
 {
@@ -24,12 +25,40 @@ public class NPC : MonoBehaviour
     [Tooltip("이 값 이상이 되면 NPC가 특정 플레이어에게 선점됩니다.")]
     public int charmThreshold = 70;
 
+    [Header("이름 UI")]
+    public string npcName = "NPC 이름";
+    public GameObject nameCanvasPrefab;  // 프리팹 연결용
+    private GameObject nameCanvasInstance;
+    private TextMeshProUGUI nameText;
+
+
     [HideInInspector]
     public int charmedByActorNumber = 0;
 
 
     private Inventory localPlayerInventory = null;
     private bool playerIsClose = false;
+
+
+    void Start()
+    {
+        if (nameCanvasPrefab != null)
+        {
+            // === 기존 Instantiate 한 줄 수정 ===
+            nameCanvasInstance = Instantiate(nameCanvasPrefab);
+            nameCanvasInstance.transform.SetParent(transform, false); // 부모로 NPC 지정 (World→Local 변환)
+
+            // === 위치 조정 ===
+            nameCanvasInstance.transform.localPosition = new Vector3(0, GetComponent<Collider>().bounds.size.y + 0.3f, 0);
+            nameCanvasInstance.transform.localRotation = Quaternion.identity;
+           
+
+            nameText = nameCanvasInstance.GetComponentInChildren<TextMeshProUGUI>();
+            if (nameText != null)
+                nameText.text = npcName;
+        }
+    }
+
 
     void Update()
     {
@@ -118,4 +147,16 @@ public class NPC : MonoBehaviour
             localPlayerInventory = null;
         }
     }
+
+    void LateUpdate()
+    {
+        if (nameCanvasInstance != null)
+        {
+            // 항상 카메라 바라보게 회전
+            var cam = Camera.main;
+            if (cam != null)
+                nameCanvasInstance.transform.LookAt(nameCanvasInstance.transform.position + cam.transform.forward);
+        }
+    }
+
 }
