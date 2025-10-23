@@ -48,10 +48,25 @@ public class DialogueManager : MonoBehaviour
 
     private void OnChoiceSelected(int likabilityChange)
     {
-        currentNpc.likability += likabilityChange;
+        if (currentNpc == null) return;
+
+        // 귀속된 NPC면 대화 선택 무시
+        if (currentNpc.charmedByActorNumber != 0)
+        {
+            Debug.Log($"[Dialogue] '{currentNpc.npcName}'은 이미 귀속되어 선택 무효화됨.");
+            return;
+        }
+
+        //  호감도 상승을 서버 귀속 로직과 동일하게 처리
+        currentNpc.IncreaseLikability(likabilityChange);
+
+        // UI 즉시 갱신
         UpdateLikabilityUI();
+
+        // 다음 대사로 진행
         DisplayNextLine();
     }
+
 
     void Start() { dialogueLines = new Queue<DialogueLine>(); }
     void EndDialogue()

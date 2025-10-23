@@ -2,18 +2,14 @@
 using Photon.Pun;
 using UnityEngine;
 using Photon.Realtime;
-using System.Linq;
-using UnityEngine.SceneManagement; // 씬 전환을 위해 추가
+using UnityEngine.SceneManagement;
 using ExitGames.Client.Photon;
-
-// ItemData, Inventory, NPC 클래스 정의가 필요합니다. (아래 PlaceholderClasses.cs 참조)
 
 public class ServerMasterClient : MonoBehaviourPunCallbacks
 {
     public static ServerMasterClient Instance;
 
     public PhotonView pv;
-    // 🚨 List<ItemData>를 사용하도록 유지
     private List<ItemData> itemDatabase = new List<ItemData>();
 
     private Dictionary<int, int> charmedCountPerPlayer = new Dictionary<int, int>();
@@ -39,7 +35,6 @@ public class ServerMasterClient : MonoBehaviourPunCallbacks
 
     private void SetupItemDatabase()
     {
-        // NOTE: Resources.LoadAll을 사용하려면 ItemData가 실제 ScriptableObject로 존재해야 합니다.
         ItemData[] allItems = Resources.LoadAll<ItemData>("Items");
 
         if (allItems.Length == 0)
@@ -51,7 +46,7 @@ public class ServerMasterClient : MonoBehaviourPunCallbacks
         itemDatabase.Clear();
         foreach (ItemData item in allItems)
         {
-            if (itemDatabase.Find(data => data.itemID == item.itemID) != null) // List 중복 체크
+            if (itemDatabase.Find(data => data.itemID == item.itemID) != null)
             {
                 Debug.LogWarning($"[DB Setup] 중복된 Item ID 발견: {item.itemID}. 무시됨.");
                 continue;
@@ -62,7 +57,6 @@ public class ServerMasterClient : MonoBehaviourPunCallbacks
         Debug.Log($"Item Database 초기화 완료 ({itemDatabase.Count}개 아이템 로드).");
     }
 
-    // List<ItemData>에서 ItemData 검색
     public ItemData GetItemData(string itemID)
     {
         return itemDatabase.Find(item => item.itemID == itemID);
@@ -70,7 +64,6 @@ public class ServerMasterClient : MonoBehaviourPunCallbacks
 
     private Inventory FindPlayerInventory(int actorNumber)
     {
-        // 이 로직은 해당 ActorNumber의 Owner를 가진 PhotonView에서 Inventory 컴포넌트를 찾습니다.
         foreach (PhotonView view in FindObjectsOfType<PhotonView>())
         {
             if (view.Owner != null && view.Owner.ActorNumber == actorNumber)
@@ -86,16 +79,16 @@ public class ServerMasterClient : MonoBehaviourPunCallbacks
         return charmedCountPerPlayer.TryGetValue(actorNumber, out var v) ? v : 0;
     }
 
+    // --- 상점 ---
     [PunRPC]
     public void RpcRequestBuyItem(string itemID, Player requesterPlayer)
     {
         if (!PhotonNetwork.IsMasterClient) return;
 
         ItemData itemData = GetItemData(itemID);
-
         if (itemData == null)
         {
-            Debug.LogWarning($"[Server] 구매 요청된 ItemID: {itemID}를 데이터베이스에서 찾을 수 없습니다.");
+            Debug.LogWarning($"[Server] 구매 요청된 ItemID: {itemID} 를 찾을 수 없음.");
             return;
         }
 
@@ -104,13 +97,11 @@ public class ServerMasterClient : MonoBehaviourPunCallbacks
 
         if (playerInventory != null && playerInventory.CanAfford(itemData.price))
         {
-            // 인벤토리에 구매 RPC를 요청합니다.
             playerInventory.pv.RPC("RpcExecuteBuy", RpcTarget.All, itemID, itemData.price);
         }
     }
 
-
-    // NPC 호감도 변경 RPC
+    // --- 호감도/귀속 ---
     [PunRPC]
     public void RpcRequestChangeLikability(int requesterActorID, int npcViewID, int likabilityChange, string giftItemID = null)
     {
@@ -121,32 +112,35 @@ public class ServerMasterClient : MonoBehaviourPunCallbacks
 
         NPC targetNPC = npcView.GetComponent<NPC>();
         Inventory targetInventory = FindPlayerInventory(requesterActorID);
-
         if (targetNPC == null) return;
 
-        // 이미 매혹되었고, 매혹한 플레이어와 요청자가 다르면 실패
-        if (targetNPC.charmedByActorNumber != 0 && targetNPC.charmedByActorNumber != requesterActorID) return;
+        // 이미 다른 플레이어에게 귀속된 경우 차단
+        if (targetNPC.charmedByActorNumber != 0 && targetNPC.charmedByActorNumber != requesterActorID)
+        {
+            Debug.Log($"[Server] Player {requesterActorID}가 접근했지만 NPC는 이미 {targetNPC.charmedByActorNumber}에게 귀속됨.");
+            return;
+        }
 
-        // 선물 처리: 아이템이 있으면 제거하고 계속 진행
+        // 선물 소모 처리
         if (!string.IsNullOrEmpty(giftItemID) && targetInventory != null)
         {
             if (targetInventory.HasItem(giftItemID))
             {
-                // RemoveItem RPC 호출 (아이템 사용)
                 targetInventory.pv.RPC("RemoveItem", RpcTarget.All, giftItemID);
             }
             else
             {
-                return; // 아이템이 없으면 실패
+                Debug.Log($"[Server] Player {requesterActorID} 선물 실패 - 아이템 {giftItemID} 없음");
+                return;
             }
         }
 
-        // 호감도 변경
+        // 호감도 갱신 (서버 기준)
         int preLikability = targetNPC.likability;
         int postLikability = preLikability + likabilityChange;
         targetNPC.likability = postLikability;
 
-        // 매혹 조건 확인 및 점수 업데이트
+        // 처음으로 임계치 도달 → 귀속 처리
         if (targetNPC.charmedByActorNumber == 0 && postLikability >= targetNPC.charmThreshold)
         {
             targetNPC.charmedByActorNumber = requesterActorID;
@@ -155,26 +149,42 @@ public class ServerMasterClient : MonoBehaviourPunCallbacks
                 charmedCountPerPlayer[requesterActorID] = 0;
             charmedCountPerPlayer[requesterActorID]++;
 
-            // 모든 클라이언트에 점수 업데이트를 알립니다.
+            // 점수 갱신
             pv.RPC("RpcUpdateCharmedCount", RpcTarget.All, requesterActorID, charmedCountPerPlayer[requesterActorID]);
+
+            // --- 귀속 정보 전파 ---
+            string ownerName = PhotonNetwork.CurrentRoom.GetPlayer(requesterActorID)?.NickName ?? $"Player{requesterActorID}";
+
+            if (PhotonNetwork.CurrentRoom.PlayerCount == 1)
+            {
+                // ✅ 혼자 방일 경우 즉시 로컬 반영 (RPC 생략)
+                NPC localNPC = npcView.GetComponent<NPC>();
+                if (localNPC != null)
+                {
+                    Debug.Log($"[ServerMasterClient] 싱글 방이므로 '{ownerName}'에게 즉시 귀속 처리");
+                    localNPC.RpcSetCharmOwner(requesterActorID, ownerName);
+                }
+            }
+            else
+            {
+                // ✅ 멀티일 때는 전체 클라에 브로드캐스트
+                npcView.RPC("RpcSetCharmOwner", RpcTarget.All, requesterActorID, ownerName);
+            }
         }
 
-        // NPC 자신에게 호감도 변경을 알려 UI 업데이트 등을 수행하게 합니다.
+        // 각 클라의 NPC UI 업데이트
         npcView.RPC("RpcChangeLikability", RpcTarget.All, likabilityChange);
     }
 
     [PunRPC]
     public void RpcUpdateCharmedCount(int actorNumber, int newCount)
     {
-        // 점수 업데이트 시 디버그 로그를 출력합니다.
         var timer = FindObjectOfType<MiniGameTimer>();
         if (timer != null)
             Debug.Log($"[ServerMasterClient] Player {actorNumber} 현재 점수: {newCount}");
     }
 
-    /// <summary>
-    /// 게임 종료 시 호출되어 승자를 판정하고 결과를 전파합니다. (마스터 전용)
-    /// </summary>
+    // --- 게임 종료/승자 발표 ---
     public void AnnounceWinner()
     {
         if (!PhotonNetwork.IsMasterClient) return;
@@ -183,7 +193,6 @@ public class ServerMasterClient : MonoBehaviourPunCallbacks
         int topScore = int.MinValue;
         int tieCount = 0;
 
-        // 1. 최고 점수 계산
         foreach (var p in PhotonNetwork.CurrentRoom.Players)
         {
             int actor = p.Value.ActorNumber;
@@ -192,10 +201,8 @@ public class ServerMasterClient : MonoBehaviourPunCallbacks
             else if (score == topScore) { tieCount++; }
         }
 
-        // 2. 동점 처리 (동점 시 승자 없음 = 0)
         if (tieCount >= 2) winnerActor = 0;
 
-        // 3. P1/P2 점수 계산 (최대 2인 플레이어로 가정)
         int p1Actor = 0, p1Score = 0, p2Actor = 0, p2Score = 0;
         if (PhotonNetwork.CurrentRoom.PlayerCount >= 1)
         {
@@ -208,7 +215,6 @@ public class ServerMasterClient : MonoBehaviourPunCallbacks
             p2Actor = b; p2Score = GetCharmedCount(b);
         }
 
-        // 4. 모든 클라이언트에 RPC로 결과 전파
         pv.RPC("RpcAnnounceWinner", RpcTarget.All, winnerActor, p1Actor, p1Score, p2Actor, p2Score);
     }
 
@@ -236,7 +242,6 @@ public class ServerMasterClient : MonoBehaviourPunCallbacks
             message = $"승자: {winnerName}\n\nP1: {p1Score} | P2: {p2Score}";
         }
 
-        // MiniGameTimer의 RPC를 호출하여 결과 UI 표시 요청
         MiniGameTimer timer = FindObjectOfType<MiniGameTimer>();
         if (timer != null)
         {
@@ -246,18 +251,10 @@ public class ServerMasterClient : MonoBehaviourPunCallbacks
         Debug.Log($"[ServerMasterClient] 게임 종료! {message}");
     }
 
-    /// <summary>
-    /// 방을 나갈 때 (게임 종료 후 로비 이동 시) 싱글톤 객체를 정리하고 씬을 전환합니다.
-    /// </summary>
     public override void OnLeftRoom()
     {
-        if (Instance == this)
-        {
-            Instance = null;
-        }
-        // DontDestroyOnLoad 객체 파괴
+        if (Instance == this) Instance = null;
         Destroy(gameObject);
-
         Debug.Log("[ServerMasterClient] OnLeftRoom: 싱글톤 정리 완료. 로비 씬으로 이동합니다.");
     }
 }
