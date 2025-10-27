@@ -213,10 +213,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5fbb937058d7eb247bbd4b9dd0060bab, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  characterPlayerWolkSpeed: 5
-  characterPolayerRunSpeed: 10
-  characterPlayerRoateSpeed: 10
-  characterPlayerCamera: {fileID: 7961061237076824264}
+  walkSpeed: 5
+  runSpeed: 10
+  playerCamera: {fileID: 0}
+  mouseSensitivity: 250
+  cameraUpDownLimit: 80
 --- !u!114 &7160246898653722238
 MonoBehaviour:
   m_ObjectHideFlags: 0
