@@ -8,14 +8,19 @@ using System;
 [RequireComponent(typeof(PhotonView))]
 public class TestCharacterPlayerMoveMent : MonoBehaviourPunCallbacks, IPunObservable
 {
-    public float characterPlayerWolkSpeed = 5f;
-    public float characterPolayerRunSpeed = 10f;
-    public float characterPlayerRoateSpeed = 10.0f;
-    public Camera characterPlayerCamera;
+    [Header("Movement Settings")]
+    public float walkSpeed = 5f;
+    public float runSpeed = 10f;
+
+    [Header("Camera Settings")]
+    public Camera playerCamera;
+    public float mouseSensitivity = 250f;
+    public float cameraUpDownLimit = 80f;
+
+    private float cameraRotationX = 0f;
 
     private Vector3 networkPosition;
     private Quaternion networkRotation;
-    private double timeAtReceive;
     private const float FIXED_LERP_RATE = 0.3f;
 
     private bool isMoving = false;
@@ -26,81 +31,102 @@ public class TestCharacterPlayerMoveMent : MonoBehaviourPunCallbacks, IPunObserv
     private int animID_IsMoving;
     private int animID_IsRunning;
 
-    private Vector3 characterPlayerDerection;
+    private Vector3 moveDirection;
 
     private void Start()
     {
-        if (characterPlayerCamera == null)
+        if (playerCamera == null)
         {
-            characterPlayerCamera = GetComponentInChildren<Camera>(true);
-            if (characterPlayerCamera == null)
+            playerCamera = GetComponentInChildren<Camera>(true);
+            if (playerCamera == null)
             {
-                Debug.LogError("PlayerPrefab 내부에 'PlayerCamera' 오브젝트를 찾을 수 없습니다! 카메라 설정을 확인하세요.");
+                Debug.LogError("PlayerPrefab 내부에 'PlayerCamera'를 찾을 수 없습니다! 카메라 설정 확인하세요.");
             }
         }
 
         if (photonView.IsMine)
         {
-            if (characterPlayerCamera != null)
+            if (playerCamera != null)
             {
-                characterPlayerCamera.gameObject.SetActive(true);
+                playerCamera.gameObject.SetActive(true);
             }
-            Debug.Log("내가 조작할 수 있는 플레이어 (1인칭 시점 활성화).");
         }
         else
         {
-            if (characterPlayerCamera != null)
+            if (playerCamera != null)
             {
-                characterPlayerCamera.gameObject.SetActive(false);
+                playerCamera.gameObject.SetActive(false);
             }
-            Debug.Log("다른 플레이어 카메라 및 조작 비활성화.");
         }
 
         if (PhotonNetwork.IsConnected)
         {
             PhotonNetwork.SerializationRate = 50;
             PhotonNetwork.SendRate = 50;
-            Debug.Log("Photon 전송 속도를 최대로 설정.");
         }
 
         animator = GetComponent<Animator>();
         if (animator == null)
         {
-            Debug.LogError("플레이어 프리팹에서 Animator 컴포넌트를 찾을 수 없습니다. 애니메이션 코드가 비활성화됩니다.");
-
+            Debug.LogError("Animator 없음! 애니메이션 사용 불가");
             enabled = false;
             return;
         }
+
         animID_IsMoving = Animator.StringToHash("IsMoving");
         animID_IsRunning = Animator.StringToHash("IsRunning");
     }
 
     private void Update()
     {
-        if (photonView.IsMine)
+        if (!photonView.IsMine) return;
+
+        if (!(Input.GetKey(KeyCode.LeftAlt) || Input.GetKey(KeyCode.RightAlt)))
         {
-            float characterPlayerHorizontalInput = Input.GetAxis("Horizontal");
-            float characterPlayoerVerticalInput = Input.GetAxis("Vertical");
+            float mouseX = Input.GetAxis("Mouse X") * mouseSensitivity * Time.deltaTime;
+            float mouseY = Input.GetAxis("Mouse Y") * mouseSensitivity * Time.deltaTime;
 
-            characterPlayerDerection = new Vector3(characterPlayerHorizontalInput, 0, characterPlayoerVerticalInput).normalized;
+            // 플레이어 좌우 회전 (Y축)
+            transform.Rotate(0, mouseX, 0);
 
-            isMoving = characterPlayerDerection.magnitude > 0.1f;
-
-            bool currentIsRunning = (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift)) && isMoving;
-
-            animator.SetBool(animID_IsMoving, isMoving);
-            animator.SetBool(animID_IsRunning, currentIsRunning);
+            // 카메라 상하 회전 (X축) 제한 포함
+            cameraRotationX -= mouseY;
+            cameraRotationX = Mathf.Clamp(cameraRotationX, -cameraUpDownLimit, cameraUpDownLimit);
+            playerCamera.transform.localRotation = Quaternion.Euler(cameraRotationX, 0, 0);
         }
+
+        
+
+        // --- 이동 입력 ---
+        float h = Input.GetAxis("Horizontal");
+        float v = Input.GetAxis("Vertical");
+
+        // 이동 방향을 카메라 기준으로 변경
+        Vector3 camForward = playerCamera.transform.forward;
+        Vector3 camRight = playerCamera.transform.right;
+        camForward.y = 0;
+        camRight.y = 0;
+        camForward.Normalize();
+        camRight.Normalize();
+
+        moveDirection = (camForward * v + camRight * h).normalized;
+        isMoving = moveDirection.magnitude > 0.1f;
+
+        bool currentIsRunning = (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift)) && isMoving;
+
+        animator.SetBool(animID_IsMoving, isMoving);
+        animator.SetBool(animID_IsRunning, currentIsRunning);
     }
 
     private void FixedUpdate()
     {
         if (photonView.IsMine)
         {
-            CharacterPlayerMoveMentExecute();
+            Move();
             return;
         }
 
+        // --- 다른 플레이어 동기화 (부드러운 보간) ---
         transform.position = Vector3.Lerp(transform.position, networkPosition, FIXED_LERP_RATE);
         transform.rotation = Quaternion.Slerp(transform.rotation, networkRotation, FIXED_LERP_RATE);
 
@@ -125,23 +151,16 @@ public class TestCharacterPlayerMoveMent : MonoBehaviourPunCallbacks, IPunObserv
             networkRotation = (Quaternion)stream.ReceiveNext();
             networkIsMoving = (bool)stream.ReceiveNext();
             networkIsRunning = (bool)stream.ReceiveNext();
-
-            timeAtReceive = info.SentServerTime;
         }
     }
 
-    void CharacterPlayerMoveMentExecute()
+    void Move()
     {
-        if (isMoving)
-        {
-            float currentSpeed = Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift) ? characterPolayerRunSpeed : characterPlayerWolkSpeed;
+        if (!isMoving) return;
 
-            Vector3 characterPlayerMove = characterPlayerDerection * currentSpeed * Time.fixedDeltaTime;
+        float currentSpeed = Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift) ? runSpeed : walkSpeed;
 
-            transform.position += characterPlayerMove;
-
-            Quaternion characterPlayerRate = Quaternion.LookRotation(characterPlayerDerection);
-            transform.rotation = Quaternion.Slerp(transform.rotation, characterPlayerRate, characterPlayerRoateSpeed * Time.fixedDeltaTime);
-        }
+        Vector3 move = moveDirection * currentSpeed * Time.fixedDeltaTime;
+        transform.position += move;
     }
 }
