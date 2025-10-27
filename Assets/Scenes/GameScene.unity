@@ -167,7 +167,7 @@ MonoBehaviour:
         likabilityChange: 0
       - choiceText: "\uC88B\uC544"
         likabilityChange: 10
-      - choiceText: "\uAEBC\uC838"
+      - choiceText: "\uC2EB\uC5B4"
         likabilityChange: -10
     - sentence: "\uB300\uD654 \uB05D"
       choices: []
