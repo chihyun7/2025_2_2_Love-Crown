@@ -584,6 +584,21 @@ PrefabInstance:
       propertyPath: m_AABB.m_Extent.z
       value: 0.06659984
       objectReference: {fileID: 0}
+    - target: {fileID: 7140606858727328969, guid: 00e83695a316f264582aeaf65ba25ef4,
+        type: 3}
+      propertyPath: m_BlendShapeWeights.Array.size
+      value: 57
+      objectReference: {fileID: 0}
+    - target: {fileID: 7140606858727328969, guid: 00e83695a316f264582aeaf65ba25ef4,
+        type: 3}
+      propertyPath: m_BlendShapeWeights.Array.data[8]
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7140606858727328969, guid: 00e83695a316f264582aeaf65ba25ef4,
+        type: 3}
+      propertyPath: m_BlendShapeWeights.Array.data[17]
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
