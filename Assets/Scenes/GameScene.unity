@@ -2542,7 +2542,7 @@ MonoBehaviour:
   timerText: {fileID: 2098031501}
   resultPanel: {fileID: 213796434}
   resultText: {fileID: 1994916005}
-  matchDuration: 20
+  matchDuration: 900
 --- !u!4 &658917799
 Transform:
   m_ObjectHideFlags: 0
