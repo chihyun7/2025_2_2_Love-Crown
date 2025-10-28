@@ -5,7 +5,6 @@ using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 using System.Collections;
 using System.Text;
-using System.Linq; // PlayerText 로직을 더 깔끔하게 하기 위해 필요할 수 있습니다.
 
 public class PhotonManager : MonoBehaviourPunCallbacks
 {
@@ -26,7 +25,6 @@ public class PhotonManager : MonoBehaviourPunCallbacks
         if (instance == null)
         {
             instance = this;
-            // 씬 전환 시에도 PhotonManager를 유지합니다.
             DontDestroyOnLoad(gameObject);
         }
         else
@@ -40,7 +38,6 @@ public class PhotonManager : MonoBehaviourPunCallbacks
 
     private void OnDestroy()
     {
-        // 오브젝트가 파괴될 때 이벤트 등록을 해제하여 메모리 누수를 방지
         SceneManager.sceneLoaded -= OnSceneLoaded;
     }
 
@@ -49,7 +46,6 @@ public class PhotonManager : MonoBehaviourPunCallbacks
         ConnectToPhoton();
     }
 
-    #region Photon 연결
 
     public void ConnectToPhoton()
     {
@@ -75,15 +71,10 @@ public class PhotonManager : MonoBehaviourPunCallbacks
 
     public override void OnDisconnected(DisconnectCause cause)
     {
-        statusText.text = $"서버 연결 끊김: {cause}";
-        // 연결이 끊기면 재접속
+        Debug.Log($"서버 연결이 끈김{cause}");
         ConnectToPhoton();
     }
 
-    #endregion
-
-
-    #region 방 생성 / 입장
 
     public void CreateRoom()
     {
@@ -162,13 +153,10 @@ public class PhotonManager : MonoBehaviourPunCallbacks
 
     public override void OnPlayerEnteredRoom(Player newPlayer)
     {
-        // 1. 상태 메시지 업데이트
         statusText.text = $"{newPlayer.NickName}님이 입장했습니다.";
 
-        // 2. 플레이어 목록 업데이트 (모두에게 동기화)
         PlayerText();
 
-        // 마스터 클라이언트라면 인원수 확인 후 게임 시작 버튼 활성화
         if (PhotonNetwork.IsMasterClient && PhotonNetwork.CurrentRoom.PlayerCount == PhotonNetwork.CurrentRoom.MaxPlayers)
         {
             if (gamestartButton != null) gamestartButton.gameObject.SetActive(true);
@@ -177,13 +165,11 @@ public class PhotonManager : MonoBehaviourPunCallbacks
 
     public override void OnPlayerLeftRoom(Player otherPlayer)
     {
-        // 플레이어가 나가도 목록을 업데이트합니다.
-        statusText.text = $"{otherPlayer.NickName}님이 퇴장했습니다.";
+        Debug.Log($"서버 연결이 {otherPlayer.NickName}님이 퇴장했습니다.");
         PlayerText();
 
         if (!PhotonNetwork.IsMasterClient && gamestartButton != null)
         {
-            // 이 로직은 방장이 바뀌었을 때 새 방장에게 버튼을 활성화해야 함
             if (PhotonNetwork.LocalPlayer.IsMasterClient)
             {
                 gamestartButton.gameObject.SetActive(true);
@@ -222,19 +208,15 @@ public class PhotonManager : MonoBehaviourPunCallbacks
         }
     }
 
-    #endregion
 
-    #region 플레이어 스폰
+
 
     private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
-        // 'GameScene'이 로드되었을 때만 스폰 로직을 실행합니다.
         if (scene.name != "GameScene") return;
 
-        // 코루틴을 시작할 때는 오브젝트가 활성화되어 있는지 확인합니다.
         if (!gameObject.activeInHierarchy)
         {
-            // 비활성화 상태라면 경고만 표시하고 코루틴 실행을 건너뛰는 것이 안전합니다.
             Debug.LogWarning("PhotonManager 오브젝트가 비활성화 상태여서 코루틴을 시작할 수 없습니다.");
             return;
         }
@@ -244,14 +226,10 @@ public class PhotonManager : MonoBehaviourPunCallbacks
 
     private IEnumerator SpawnPlayerAfterSceneLoaded()
     {
-        // 이 코루틴은 씬 로드 후 PlayerSpawnManager를 찾고 플레이어를 스폰합니다.
-
-        // 1. 씬 로드 완료를 위해 한 프레임 대기
         yield return null;
 
         float startTime = Time.time;
 
-        // 2. PlayerSpawnManager가 준비될 때까지 최대 5초간 대기하며 찾기
         while (PlayerSpawnManager.instance == null && Time.time < startTime + 5f)
         {
             Debug.LogWarning("PlayerSpawnManager 대기 중...");
@@ -264,8 +242,6 @@ public class PhotonManager : MonoBehaviourPunCallbacks
             }
             yield return null;
         }
-
-        // 3. 최종 검증 (루프 탈출 후)
         if (PlayerSpawnManager.instance == null)
         {
             Debug.LogError("PlayerSpawnManager를 5초 내에 찾을 수 없어 스폰 실패!");
@@ -281,8 +257,6 @@ public class PhotonManager : MonoBehaviourPunCallbacks
         // 4. 플레이어 스폰
         int playerIndex = PhotonNetwork.LocalPlayer.ActorNumber - 1;
         Vector3 spawnPos = PlayerSpawnManager.instance.GetSpawnPosition(playerIndex);
-
-        // 'Player' 프리팹은 Resources 폴더에 있어야 합니다.
         GameObject player = PhotonNetwork.Instantiate("Player", spawnPos, Quaternion.identity);
 
         if (player == null)
@@ -295,6 +269,4 @@ public class PhotonManager : MonoBehaviourPunCallbacks
         }
     }
 
-
-    #endregion
 }

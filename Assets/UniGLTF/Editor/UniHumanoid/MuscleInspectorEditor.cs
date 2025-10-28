@@ -1,16 +1,20 @@
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEditor;
 using UnityEditor.IMGUI.Controls;
 using UnityEngine;
+
 
 namespace UniHumanoid
 {
     class BoneNode : IEnumerable<BoneNode>
     {
         public HumanBodyBones Bone { get; private set; }
+
         public List<BoneNode> Children = new List<BoneNode>();
+
         public int[] Muscles;
 
         public BoneNode(HumanBodyBones bone, params int[] muscles)
@@ -21,26 +25,38 @@ namespace UniHumanoid
 
         public IEnumerator<BoneNode> GetEnumerator()
         {
-            yield return this;
-            foreach (var c in Children)
-            {
-                foreach (var n in c) yield return n;
-            }
+            throw new NotImplementedException();
         }
 
-        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            throw new NotImplementedException();
+        }
 
-        public void Add(BoneNode child) => Children.Add(child);
+        public void Add(BoneNode child)
+        {
+            Children.Add(child);
+        }
     }
 
     class BoneTreeViewItem : TreeViewItem
     {
-        public BoneTreeViewItem(int id, int depth, HumanBodyBones bone) : base(id, depth, bone.ToString()) { }
+        //HumanBodyBones m_bone;
+
+        public BoneTreeViewItem(int id, int depth, HumanBodyBones bone) : base(id, depth, bone.ToString())
+        {
+            //m_bone = bone;
+        }
     }
 
     class MuscleTreeViewItem : TreeViewItem
     {
-        public int Muscle { get; private set; }
+        public int Muscle
+        {
+            get;
+            private set;
+        }
+
         public MuscleTreeViewItem(int id, int depth, int muscle) : base(id, depth, HumanTrait.MuscleName[muscle])
         {
             Muscle = muscle;
@@ -93,8 +109,10 @@ namespace UniHumanoid
             }
         };
 
+        //Animator m_animator;
         HumanPoseHandler m_handler;
         HumanPose m_pose;
+
         bool m_updated;
 
         public void Begin()
@@ -126,6 +144,9 @@ namespace UniHumanoid
         protected override IList<TreeViewItem> BuildRows(TreeViewItem root)
         {
             var rows = GetRows() ?? new List<TreeViewItem>(200);
+
+            // We use the GameObject instanceIDs as ids for items as we want to 
+            // select the game objects and not the transform components.
             rows.Clear();
 
             var item = CreateTreeViewItemForBone(HumanBodyBones.Hips);
@@ -142,6 +163,7 @@ namespace UniHumanoid
             }
 
             SetupDepthsFromParentsAndChildren(root);
+
             return rows;
         }
 
@@ -149,7 +171,6 @@ namespace UniHumanoid
         {
             int childCount = bone.Children.Count;
             item.children = new List<TreeViewItem>(childCount);
-
             if (bone.Muscles != null)
             {
                 foreach (var muscle in bone.Muscles)
@@ -166,24 +187,26 @@ namespace UniHumanoid
                 item.AddChild(childItem);
                 rows.Add(childItem);
 
-                if (IsExpanded(childItem.id))
+                //if (child.Children.Count > 0)
                 {
-                    AddChildrenRecursive(child, childItem, rows);
-                }
-                else
-                {
-                    childItem.children = CreateChildListForCollapsedParent();
+                    if (IsExpanded(childItem.id))
+                    {
+                        AddChildrenRecursive(child, childItem, rows);
+                    }
+                    else
+                    {
+                        childItem.children = CreateChildListForCollapsedParent();
+                    }
                 }
             }
         }
 
         static TreeViewItem CreateTreeViewItemForBone(HumanBodyBones bone)
         {
-            return new BoneTreeViewItem((int)bone, -1, bone);
+            return new TreeViewItem((int)bone, -1, Enum.GetName(typeof(HumanBodyBones), bone));
         }
 
-        // inside class BoneTreeView : TreeView<int>
-        protected override void RowGUI(UnityEditor.IMGUI.Controls.TreeView.RowGUIArgs args)
+        protected override void RowGUI(RowGUIArgs args)
         {
             for (int i = 0; i < args.GetNumVisibleColumns(); ++i)
             {
@@ -191,33 +214,41 @@ namespace UniHumanoid
             }
         }
 
-        void CellGUI(Rect cellRect, int index, ref UnityEditor.IMGUI.Controls.TreeView.RowGUIArgs args)
+        void CellGUI(Rect cellRect, int index, ref RowGUIArgs args)
         {
+            // Center cell rect vertically (makes it easier to place controls, icons etc in the cells)
             CenterRectUsingSingleLineHeight(ref cellRect);
 
             switch (index)
             {
                 case 0:
-                {
-                    args.rowRect = cellRect;
-                    base.RowGUI(args);
-                    break;
-                }
-                case 1:
-                {
-                    if (args.item is MuscleTreeViewItem muscleItem)
                     {
-                        var muscleIndex = muscleItem.Muscle;
-                        var muscles = m_pose.muscles;
-                        var value = EditorGUI.Slider(cellRect, GUIContent.none, muscles[muscleIndex], -1f, 1f);
-                        if (!Mathf.Approximately(value, muscles[muscleIndex]))
+                        // Default icon and label
+                        args.rowRect = cellRect;
+                        base.RowGUI(args);
+                    }
+                    break;
+
+                case 1:
+                    {
+                        var muscleItem = args.item as MuscleTreeViewItem;
+                        if (muscleItem != null)
                         {
-                            muscles[muscleIndex] = value;
-                            m_updated = true;
+                            var muscleIndex = muscleItem.Muscle;
+                            var muscles = m_pose.muscles;
+                            var value = EditorGUI.Slider(cellRect, GUIContent.none, muscles[muscleIndex], -1f, 1f);
+                            if (value != muscles[muscleIndex])
+                            {
+                                muscles[muscleIndex] = value;
+                                m_updated = true;
+                            }
+                        }
+                        else
+                        {
+
                         }
                     }
                     break;
-                }
             }
         }
 
@@ -247,24 +278,32 @@ namespace UniHumanoid
         }
     }
 
+
     [CustomEditor(typeof(MuscleInspector))]
     public class MuscleInspectorEditor : Editor
     {
         [NonSerialized] bool m_Initialized;
-
-        // Note: Unity 6000 recommends generic state. It's fine if this isn't serialized by Unity's object serializer;
-        // the TreeView manages its own persistence in editor layouts.
-        [SerializeField] TreeViewState m_TreeViewState;
-
+        [SerializeField] TreeViewState m_TreeViewState; // Serialized in the window layout file so it survives assembly reloading
+        //[SerializeField] MultiColumnHeaderState m_MultiColumnHeaderState;
         SearchField m_SearchField;
         BoneTreeView m_TreeView;
 
         MuscleInspector m_target;
         HumanPoseHandler m_handler;
 
+
         MultiColumnHeader GetHeaderState()
         {
+            //bool firstInit = m_MultiColumnHeaderState == null;
+
             var headerState = BoneTreeView.CreateDefaultMultiColumnHeaderState();
+            /*
+            if (MultiColumnHeaderState.CanOverwriteSerializedFields(m_MultiColumnHeaderState, headerState))
+            {
+                MultiColumnHeaderState.OverwriteSerializedFields(m_MultiColumnHeaderState, headerState);
+            }
+            m_MultiColumnHeaderState = headerState;
+            */
             var multiColumnHeader = new MultiColumnHeader(headerState);
             multiColumnHeader.ResizeToFit();
             return multiColumnHeader;
@@ -272,19 +311,17 @@ namespace UniHumanoid
 
         void OnEnable()
         {
-            var mi = target as MuscleInspector;
-            if (mi != null &&
-                mi.TryGetComponent<Animator>(out var animator) &&
-                animator.avatar != null &&
-                animator.avatar.isValid &&
-                animator.avatar.isHuman)
+            var mi = this.target as MuscleInspector;
+            if (mi.TryGetComponent<Animator>(out var animator)
+            && animator.avatar != null
+            && animator.avatar.isValid
+            && animator.avatar.isHuman
+            )
             {
                 UniGLTF.UniGLTFLogger.Log("MuscleInspectorEditor.OnEnable");
                 m_handler = new HumanPoseHandler(animator.avatar, animator.transform);
 
-                // Use existing state if available, else create a new one
-                if (m_TreeViewState == null) m_TreeViewState = new TreeViewState();
-                m_TreeView = new BoneTreeView(m_TreeViewState, GetHeaderState(), m_handler);
+                m_TreeView = new BoneTreeView(new TreeViewState(), GetHeaderState(), m_handler);
             }
         }
 

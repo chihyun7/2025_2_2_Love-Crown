@@ -18,7 +18,6 @@ public class Shop : MonoBehaviour
         {
             if (itemIDsToSell.Length > 0)
             {
-                // 현재는 첫 번째 아이템 구매 요청만 한다고 가정
                 RequestPurchase(itemIDsToSell[0]);
             }
         }
@@ -26,21 +25,18 @@ public class Shop : MonoBehaviour
 
     public void RequestPurchase(string itemID)
     {
-        //널 체크 추가: ServerMasterClient가 초기화되었는지 확인합니다.
         if (ServerMasterClient.Instance == null)
         {
             Debug.LogError("구매 요청 실패: ServerMasterClient 인스턴스가 존재하지 않아 RPC를 보낼 수 없습니다.");
             return;
         }
 
-        // PV(PhotonView)도 널인지 한 번 더 확인하면 더 안전합니다.
         if (ServerMasterClient.Instance.pv == null)
         {
             Debug.LogError("구매 요청 실패: ServerMasterClient의 PhotonView(pv)가 할당되지 않았습니다.");
             return;
         }
 
-        // 모든 검사를 통과하면 RPC 호출 실행
         ServerMasterClient.Instance.pv.RPC(
             "RpcRequestBuyItem",
             RpcTarget.MasterClient,

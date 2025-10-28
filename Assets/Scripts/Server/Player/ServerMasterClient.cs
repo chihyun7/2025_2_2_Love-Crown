@@ -157,7 +157,6 @@ public class ServerMasterClient : MonoBehaviourPunCallbacks
 
             if (PhotonNetwork.CurrentRoom.PlayerCount == 1)
             {
-                // ✅ 혼자 방일 경우 즉시 로컬 반영 (RPC 생략)
                 NPC localNPC = npcView.GetComponent<NPC>();
                 if (localNPC != null)
                 {
@@ -167,7 +166,6 @@ public class ServerMasterClient : MonoBehaviourPunCallbacks
             }
             else
             {
-                // ✅ 멀티일 때는 전체 클라에 브로드캐스트
                 npcView.RPC("RpcSetCharmOwner", RpcTarget.All, requesterActorID, ownerName);
             }
         }

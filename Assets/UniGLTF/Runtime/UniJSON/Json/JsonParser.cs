@@ -53,7 +53,7 @@ namespace UniJSON
                     }
 
                 default:
-                    throw new ParserException(segment + " is not valid json start(maybe invalid ',')");
+                    throw new ParserException(segment + " is not valid json start");
             }
         }
 

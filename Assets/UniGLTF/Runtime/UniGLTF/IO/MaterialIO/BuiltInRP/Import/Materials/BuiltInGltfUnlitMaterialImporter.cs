@@ -5,26 +5,13 @@ using UnityEngine;
 
 namespace UniGLTF
 {
-    /// <summary>
-    /// A class that generates MaterialDescriptor for "UnGLTF/UniUnlit" shader based on glTF Extension "KHR_materials_unlit".
-    ///
-    /// https://github.com/KhronosGroup/glTF/tree/main/extensions/2.0/Khronos/KHR_materials_unlit
-    /// </summary>
-    public class BuiltInGltfUnlitMaterialImporter
+    public static class BuiltInGltfUnlitMaterialImporter
     {
         private static readonly int Cutoff = Shader.PropertyToID("_Cutoff");
 
-        /// <summary>
-        /// Can be replaced with custom shaders that are compatible with "UniGLTF/UniUnlit" properties and keywords.
-        /// </summary>
-        public Shader Shader { get; set; }
+        public static Shader Shader => Shader.Find(UniUnlitUtil.ShaderName);
 
-        public BuiltInGltfUnlitMaterialImporter(Shader shader = null)
-        {
-            Shader = shader != null ? shader : Shader.Find(UniUnlitUtil.ShaderName);
-        }
-
-        public bool TryCreateParam(GltfData data, int i, out MaterialDescriptor matDesc)
+        public static bool TryCreateParam(GltfData data, int i, out MaterialDescriptor matDesc)
         {
             if (i < 0 || i >= data.GLTF.materials.Count)
             {

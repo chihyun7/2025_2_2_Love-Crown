@@ -148,10 +148,6 @@ public class UIManager : MonoBehaviour
         }
     }
 
-
-    /// <summary>
-    /// Inventory.cs의 List<ItemEntry> 구조를 반영하여 UI를 그립니다.
-    /// </summary>
     public void UpdateInventoryUI()
     {
         if (localInventory == null || ServerMasterClient.Instance == null)
@@ -195,7 +191,7 @@ public class UIManager : MonoBehaviour
 
             if (quantity > 0)
             {
-                // ItemData 로드는 ServerMasterClient가 담당한다고 가정
+
                 ItemData data = ServerMasterClient.Instance.GetItemData(itemID);
 
                 if (data == null)
@@ -209,11 +205,10 @@ public class UIManager : MonoBehaviour
 
                 if (slotComponent != null)
                 {
-                    slotComponent.SetItem(data, quantity); // ItemSlot.SetItem에서 버튼이 활성화됨
+                    slotComponent.SetItem(data, quantity); 
                 }
                 else
                 {
-                    // ItemSlot 컴포넌트가 없을 경우 대체 로직
                     TextMeshProUGUI itemText = slotGO.GetComponentInChildren<TextMeshProUGUI>();
                     if (itemText != null)
                     {
