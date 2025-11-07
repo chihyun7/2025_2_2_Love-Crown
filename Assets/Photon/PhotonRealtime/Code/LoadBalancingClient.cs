@@ -2734,10 +2734,10 @@ namespace Photon.Realtime
             #if !SUPPORTED_UNITY
             Debug.WriteLine(message);
             #else
-            if (level == DebugLevel.ERROR)
-            {
-                Debug.LogError(message);
-            }
+            //if (level == DebugLevel.ERROR)
+            //{
+            //    Debug.LogError(message);
+            //}
             else if (level == DebugLevel.WARNING)
             {
                 Debug.LogWarning(message);

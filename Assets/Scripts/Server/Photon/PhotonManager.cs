@@ -18,13 +18,13 @@ public class PhotonManager : MonoBehaviourPunCallbacks
 
     public GameObject gamestartButton;
     private StringBuilder sb = new StringBuilder();
-    private static PhotonManager instance;
+    private static PhotonManager Instance;
 
     private void Awake()
     {
-        if (instance == null)
+        if (Instance == null)
         {
-            instance = this;
+            Instance = this;
             DontDestroyOnLoad(gameObject);
         }
         else
@@ -209,7 +209,12 @@ public class PhotonManager : MonoBehaviourPunCallbacks
     }
 
 
-
+    public override void OnLeftRoom()
+    {
+        if (Instance == this) Instance = null;
+        Destroy(gameObject);
+        Debug.Log("[ServerMasterClient] OnLeftRoom: 싱글톤 정리 완료. 로비 씬으로 이동합니다.");
+    }
 
     private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
