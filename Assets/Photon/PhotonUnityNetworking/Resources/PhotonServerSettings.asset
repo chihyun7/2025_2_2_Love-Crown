@@ -48,6 +48,12 @@ MonoBehaviour:
   - RpcUpdateCharmedCount
   - RemoveItem
   - RpcSetCharmOwner
+  - RpcAddItem
+  - RpcAddQuest
+  - RpcChangeGold
+  - RpcCompleteQuest
+  - RpcRequestQuestComplete
+  - RpcUpdateQuestProgress
   DisableAutoOpenWizard: 1
   ShowSettings: 0
   DevRegionSetOnce: 1

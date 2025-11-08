@@ -4,6 +4,7 @@ using UnityEngine;
 using Photon.Realtime;
 using UnityEngine.SceneManagement;
 using ExitGames.Client.Photon;
+using System.Linq;
 
 public class ServerMasterClient : MonoBehaviourPunCallbacks
 {
@@ -13,6 +14,8 @@ public class ServerMasterClient : MonoBehaviourPunCallbacks
     private List<ItemData> itemDatabase = new List<ItemData>();
 
     private Dictionary<int, int> charmedCountPerPlayer = new Dictionary<int, int>();
+
+    private List<QuestData> questDatabase = new List<QuestData>();
 
     private void Awake()
     {
@@ -31,6 +34,7 @@ public class ServerMasterClient : MonoBehaviourPunCallbacks
     private void Start()
     {
         SetupItemDatabase();
+        SetupQuestDatabase();
     }
 
     private void SetupItemDatabase()
@@ -255,4 +259,47 @@ public class ServerMasterClient : MonoBehaviourPunCallbacks
         Destroy(gameObject);
         Debug.Log("[ServerMasterClient] OnLeftRoom: 싱글톤 정리 완료. 로비 씬으로 이동합니다.");
     }
+
+    private void SetupQuestDatabase()
+    {
+        QuestData[] allQuests = Resources.LoadAll<QuestData>("Quests");
+        questDatabase = allQuests.ToList();
+        Debug.Log($"Quest Database 초기화 완료 ({questDatabase.Count}개 퀘스트 로드).");
+    }
+
+    public QuestData GetQuestData(string questID)
+    {
+        return questDatabase.Find(quest => quest.questID == questID);
+    }
+
+    [PunRPC]
+    public void RpcRequestQuestComplete(int requesterActorID, string questID)
+    {
+        if (!PhotonNetwork.IsMasterClient) return;
+
+        QuestData quest = GetQuestData(questID);
+        Inventory playerInventory = FindPlayerInventory(requesterActorID);
+
+        if (quest == null || playerInventory == null)
+        {
+            Debug.LogError("퀘스트 완료 요청 실패: 퀘스트 또는 인벤토리 찾을 수 없음");
+            return;
+        }
+
+        // 보상 지급
+        if (quest.rewardGold > 0)
+        {
+            playerInventory.pv.RPC("RpcChangeGold", RpcTarget.All, quest.rewardGold);
+        }
+        if (quest.rewardItem != null && quest.rewardItemQuantity > 0)
+        {
+            playerInventory.pv.RPC("RpcAddItem", RpcTarget.All, quest.rewardItem.itemID, quest.rewardItemQuantity);
+        }
+
+        // 퀘스트 완료 처리 (PlayerQuestLog에 RPC 전송)
+        playerInventory.pv.RPC("RpcCompleteQuest", RpcTarget.All, questID);
+
+        Debug.Log($"[Server] Player {requesterActorID} 퀘스트 완료 및 보상 지급: {questID}");
+    }
+
 }

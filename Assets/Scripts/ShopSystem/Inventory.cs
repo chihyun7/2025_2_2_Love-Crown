@@ -7,6 +7,7 @@ using System.Linq;
 public class Inventory : MonoBehaviourPunCallbacks, IPunObservable
 {
     public PhotonView pv;
+    private PlayerQuestLog questLog;
 
     [System.Serializable]
     public struct ItemEntry
@@ -35,6 +36,8 @@ public class Inventory : MonoBehaviourPunCallbacks, IPunObservable
         {
             Debug.LogError("Inventory 컴포넌트에 PhotonView가 누락되었습니다.");
         }
+
+        questLog = GetComponent<PlayerQuestLog>();
     }
 
     public List<ItemEntry> GetItems()
@@ -50,7 +53,7 @@ public class Inventory : MonoBehaviourPunCallbacks, IPunObservable
     [PunRPC]
     public void RpcExecuteBuy(string itemID, int price)
     {
-        gold -= price;
+        RpcChangeGold(-price);
 
         Debug.Log($"[Inventory] 아이템 [{itemID}] {1}개가 구매되어 인벤토리에 들어왔습니다."); // 아이템 획득 주석
         AddItemToList(itemID, 1);
@@ -97,6 +100,11 @@ public class Inventory : MonoBehaviourPunCallbacks, IPunObservable
 
             Debug.Log($"[AddItemToList] 새 아이템 추가: {itemID}, 수량: {quantity}");
         }
+
+        if (pv.IsMine && questLog != null)
+        {
+            questLog.UpdateQuestProgress(itemID, GetItemCount(itemID));
+        }
     }
 
     [PunRPC]
@@ -124,6 +132,11 @@ public class Inventory : MonoBehaviourPunCallbacks, IPunObservable
         if (pv.IsMine)
         {
             UpdateLocalUI();
+        }
+
+        if (pv.IsMine && questLog != null)
+        {
+            questLog.UpdateQuestProgress(itemID, GetItemCount(itemID));
         }
     }
 
@@ -180,4 +193,32 @@ public class Inventory : MonoBehaviourPunCallbacks, IPunObservable
             }
         }
     }
+
+    public int GetItemCount(string itemID)
+    {
+        int index = items.FindIndex(entry => entry.itemID == itemID);
+        if (index != -1)
+        {
+            return items[index].quantity;
+        }
+        return 0;
+    }
+
+    [PunRPC]
+    public void RpcChangeGold(int amount)
+    {
+        gold += amount;
+        if (pv.IsMine) UIManager.instance.UpdateGoldText(gold);
+    }
+
+
+    [PunRPC]
+    public void RpcAddItem(string itemID, int quantity)
+    {
+        AddItemToList(itemID, quantity);
+        if (pv.IsMine) UpdateLocalUI();
+    }
+
+
+
 }

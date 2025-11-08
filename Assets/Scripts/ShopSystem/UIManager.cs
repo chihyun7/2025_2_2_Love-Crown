@@ -18,11 +18,14 @@ public class UIManager : MonoBehaviour
     public TextMeshProUGUI confirmText;
     public Button yesButton;
     public Button noButton;
+    public GameObject questLogPanel;
 
     [Header("Layout & Prefabs")]
     public Transform shopContent;
     public Transform inventoryContent;
     public GameObject itemSlotPrefab; // ItemSlot 스크립트가 붙어 있다고 가정
+    public Transform questLogContent; // 퀘스트 로그의 Content 오브젝트 연결
+    public GameObject questSlotPrefab; // 퀘스트 슬롯 프리팹
 
     private Inventory localInventory;
 
@@ -41,6 +44,53 @@ public class UIManager : MonoBehaviour
     void Start()
     {
         FindLocalPlayerInventory();
+    }
+
+    public void ToggleQuestLogPanel()
+    {
+        questLogPanel.SetActive(!questLogPanel.activeInHierarchy);
+        if (questLogPanel.activeInHierarchy)
+        {
+            UpdateQuestLogUI(FindObjectOfType<PlayerQuestLog>());
+        }
+    }
+
+    public void UpdateQuestLogUI(PlayerQuestLog questLog)
+    {
+        if (questLog == null || !questLogPanel.activeInHierarchy) return;
+
+        foreach (Transform child in questLogContent)
+        {
+            Destroy(child.gameObject);
+        }
+
+        foreach (var questStatus in questLog.activeQuests.Values)
+        {
+            QuestData quest = ServerMasterClient.Instance.GetQuestData(questStatus.questID);
+            if (quest == null) continue;
+
+            GameObject slotGO = Instantiate(questSlotPrefab, questLogContent);
+            TextMeshProUGUI slotText = slotGO.GetComponentInChildren<TextMeshProUGUI>();
+
+            string progress = "";
+            if (quest.objective.type == QuestObjective.ObjectiveType.Collect)
+            {
+                progress = $"({questStatus.currentProgress} / {quest.objective.targetItemQuantity})";
+            }
+
+            slotText.text = $"[진행중] {quest.questName} {progress}\n<size=12>{quest.description}</size>";
+        }
+
+        foreach (string questID in questLog.completedQuestIDs)
+        {
+            QuestData quest = ServerMasterClient.Instance.GetQuestData(questID);
+            if (quest == null) continue;
+
+            GameObject slotGO = Instantiate(questSlotPrefab, questLogContent);
+            TextMeshProUGUI slotText = slotGO.GetComponentInChildren<TextMeshProUGUI>();
+            slotText.text = $"[완료] {quest.questName}";
+            slotText.color = Color.gray;
+        }
     }
 
     public void FindLocalPlayerInventory()

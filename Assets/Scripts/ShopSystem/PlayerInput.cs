@@ -22,6 +22,18 @@ public class PlayerInput : MonoBehaviour
             {
                 UIManager.instance.ToggleInventoryPanel();
             }
+            else if (UIManager.instance.questLogPanel.activeInHierarchy) // 추가
+            {
+                UIManager.instance.ToggleQuestLogPanel(); // 추가
+            }
+        }
+
+        if (Input.GetKeyDown(KeyCode.J))
+        {
+            if (!DialogueManager.IsDialogueActive && !UIManager.instance.shopPanel.activeInHierarchy)
+            {
+                UIManager.instance.ToggleQuestLogPanel();
+            }
         }
     }
 }

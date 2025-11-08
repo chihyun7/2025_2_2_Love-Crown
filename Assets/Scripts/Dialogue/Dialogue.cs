@@ -1,10 +1,13 @@
-using UnityEngine;
+﻿using UnityEngine;
 
 [System.Serializable]
 public class Choice
 {
     public string choiceText;
-    public int likabilityChange;
+    public int likabilityChange; // 호감도 변화량 (0이면 변화 없음)
+
+    public enum ChoiceAction { Normal, AcceptQuest, RejectQuest }
+    public ChoiceAction action = ChoiceAction.Normal;
 }
 
 [System.Serializable]

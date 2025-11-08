@@ -1,8 +1,9 @@
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using TMPro;
 using UnityEngine.UI;
+using Photon.Pun;
 
 public class DialogueManager : MonoBehaviour
 {
@@ -16,18 +17,49 @@ public class DialogueManager : MonoBehaviour
     public static bool IsDialogueActive = false;
     private Queue<DialogueLine> dialogueLines;
     private NPC currentNpc;
+    private QuestData currentQuestOffer;
+    private PlayerQuestLog localPlayerQuestLog;
 
-    public void StartDialogue(Dialogue dialogue, NPC npc)
+    void Start()
+    {
+        dialogueLines = new Queue<DialogueLine>();
+    }
+
+    public void StartDialogue(Dialogue dialogue, NPC npc, QuestData questToOffer = null)
     {
         IsDialogueActive = true;
         currentNpc = npc;
-        FindObjectOfType<PlayerMove>().canMove = false;
+        currentQuestOffer = questToOffer;
+
+        localPlayerQuestLog = FindObjectOfType<PlayerQuestLog>();
+        if (localPlayerQuestLog == null)
+        {
+            // 멀티플레이 환경에서는 내 플레이어의 퀘스트 로그를 찾아야 합니다.
+            foreach (var log in FindObjectsOfType<PlayerQuestLog>())
+            {
+                if (log.GetComponent<PhotonView>().IsMine)
+                {
+                    localPlayerQuestLog = log;
+                    break;
+                }
+            }
+        }
+
+        // 플레이어 이동 정지 (내 플레이어만)
+        foreach (var playerMove in FindObjectsOfType<PlayerMove>())
+        {
+            if (playerMove.GetComponent<PhotonView>().IsMine)
+            {
+                playerMove.canMove = false;
+                break;
+            }
+        }
 
         dialoguePanel.SetActive(true);
         likabilityText.gameObject.SetActive(true);
         UpdateLikabilityUI();
 
-        nameText.text = currentNpc.name;
+        nameText.text = currentNpc.npcName;
         dialogueLines.Clear();
 
         foreach (DialogueLine line in dialogue.lines)
@@ -42,41 +74,69 @@ public class DialogueManager : MonoBehaviour
     {
         if (currentNpc != null)
         {
-            likabilityText.text = "ȣ����: " + currentNpc.likability;
+            likabilityText.text = "호감도: " + currentNpc.likability;
         }
     }
 
-    private void OnChoiceSelected(int likabilityChange)
+    // --- 👇 [수정] OnChoiceSelected가 Choice 객체를 통째로 받도록 변경 ---
+    private void OnChoiceSelected(Choice choice)
     {
         if (currentNpc == null) return;
+        if (currentNpc.charmedByActorNumber != 0) return;
 
-        // �ͼӵ� NPC�� ��ȭ ���� ����
-        if (currentNpc.charmedByActorNumber != 0)
+        // 1. [항상 적용] 호감도 변화 적용
+        // (0이 아니면 호감도 변경 RPC 호출)
+        if (choice.likabilityChange != 0)
         {
-            Debug.Log($"[Dialogue] '{currentNpc.npcName}'�� �̹� �ͼӵǾ� ���� ��ȿȭ��.");
-            return;
+            currentNpc.IncreaseLikability(choice.likabilityChange);
+            UpdateLikabilityUI();
         }
 
-        //  ȣ���� ����� ���� �ͼ� ������ �����ϰ� ó��
-        currentNpc.IncreaseLikability(likabilityChange);
+        // 2. [특별 기능] 퀘스트 액션 처리
+        switch (choice.action)
+        {
+            case Choice.ChoiceAction.AcceptQuest:
+                if (currentQuestOffer != null && localPlayerQuestLog != null)
+                {
+                    localPlayerQuestLog.AcceptQuest(currentQuestOffer);
+                }
+                break;
 
-        // UI ��� ����
-        UpdateLikabilityUI();
+            case Choice.ChoiceAction.RejectQuest:
+                // 거절. 아무것도 하지 않고 대화만 넘김
+                break;
 
-        // ���� ���� ����
+            case Choice.ChoiceAction.Normal:
+            default:
+                // 일반 대화. 아무것도 하지 않음
+                break;
+        }
+
+        // 3. 다음 대사로 진행
         DisplayNextLine();
     }
 
-
-    void Start() { dialogueLines = new Queue<DialogueLine>(); }
     void EndDialogue()
     {
         IsDialogueActive = false;
         dialoguePanel.SetActive(false);
         likabilityText.gameObject.SetActive(false);
-        FindObjectOfType<PlayerMove>().canMove = true;
+
+        // 플레이어 이동 재개 (내 플레이어만)
+        foreach (var playerMove in FindObjectsOfType<PlayerMove>())
+        {
+            if (playerMove.GetComponent<PhotonView>().IsMine)
+            {
+                playerMove.canMove = true;
+                break;
+            }
+        }
+
         currentNpc = null;
+        currentQuestOffer = null;
+        localPlayerQuestLog = null;
     }
+
     public void DisplayNextLine()
     {
         ClearChoiceButtons();
@@ -86,6 +146,8 @@ public class DialogueManager : MonoBehaviour
         if (currentLine.choices.Length > 0) { ShowChoices(currentLine.choices); }
         else { StartCoroutine(WaitForSpaceBar()); }
     }
+
+    // --- 👇 [수정] ShowChoices가 OnChoiceSelected에 int가 아닌 Choice를 넘기도록 변경 ---
     private void ShowChoices(Choice[] choices)
     {
         choiceLayout.SetActive(true);
@@ -93,14 +155,19 @@ public class DialogueManager : MonoBehaviour
         {
             GameObject buttonGO = Instantiate(choiceButtonPrefab, choiceLayout.transform);
             buttonGO.GetComponentInChildren<TextMeshProUGUI>().text = choice.choiceText;
-            buttonGO.GetComponent<Button>().onClick.AddListener(() => OnChoiceSelected(choice.likabilityChange));
+
+            // [중요] choice 변수를 람다 표현식에서 올바르게 캡처
+            Choice currentChoice = choice;
+            buttonGO.GetComponent<Button>().onClick.AddListener(() => OnChoiceSelected(currentChoice));
         }
     }
+
     private void ClearChoiceButtons()
     {
         foreach (Transform child in choiceLayout.transform) { Destroy(child.gameObject); }
         choiceLayout.SetActive(false);
     }
+
     private IEnumerator WaitForSpaceBar()
     {
         yield return new WaitUntil(() => Input.GetKeyDown(KeyCode.Space));

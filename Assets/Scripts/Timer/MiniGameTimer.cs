@@ -31,17 +31,28 @@ public class MiniGameTimer : MonoBehaviourPunCallbacks
             resultPanel.SetActive(false);
         }
 
-        // 2. 마스터 클라이언트만 종료 시각 설정
+        // --- 👇 [수정] 포톤 방에 입장한 상태인지 먼저 확인합니다. ---
+        if (!PhotonNetwork.InRoom)
+        {
+            Debug.LogWarning("[MiniGameTimer] 포톤 방에 입장해 있지 않아 타이머를 시작할 수 없습니다. (에디터 테스트일 수 있음)");
+
+            // timerText가 연결 안 됐을 수도 있으니 null 체크
+            if (timerText != null)
+            {
+                timerText.text = "xx:xx"; // 테스트 중임을 알림
+            }
+            return; // 방에 없으면 Start 함수를 여기서 종료
+        }
+        // ---------------------------------------------------------
+
+        // 2. 마스터 클라이언트만 종료 시각 설정 (이제 InRoom이 보장됨)
         if (PhotonNetwork.IsMasterClient)
         {
-            // Photon 서버 시간을 기준으로 종료 시각 설정
             double now = PhotonNetwork.Time;
             endTime = now + matchDuration;
 
-            // ✅ 명시적 참조 사용: ExitGames.Client.Photon.Hashtable
             ExitGames.Client.Photon.Hashtable roomProps = new ExitGames.Client.Photon.Hashtable();
             roomProps[END_TIME_KEY] = endTime;
-            // 룸 속성 업데이트 (네트워크 전파)
             PhotonNetwork.CurrentRoom.SetCustomProperties(roomProps);
             Debug.Log($"[MiniGameTimer] 마스터 클라이언트: 종료 시각 설정 완료 ({endTime:F2})");
         }
@@ -55,7 +66,6 @@ public class MiniGameTimer : MonoBehaviourPunCallbacks
             }
             else
             {
-                // 마스터가 아직 속성을 설정하지 않았을 경우를 대비 (일반적으로 발생해서는 안 됨)
                 Debug.LogWarning("[MiniGameTimer] 종료 시각 속성을 찾을 수 없습니다. 마스터 설정을 기다립니다.");
             }
         }

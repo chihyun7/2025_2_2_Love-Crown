@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using Photon.Realtime;
 using TMPro;
+using System.Linq;
 
 public class NPC : MonoBehaviourPun
 {
@@ -30,8 +31,13 @@ public class NPC : MonoBehaviourPun
     private GameObject nameCanvasInstance;
     private TextMeshProUGUI nameText;
 
+    [Header("퀘스트")]
+    public QuestData questToOffer;
+
     [HideInInspector]
     public int charmedByActorNumber = 0;
+
+    private PlayerQuestLog localPlayerQuestLog;
 
     // === [추가] 귀속된 플레이어 이름 저장용 ===
     private string charmedPlayerName = "";
@@ -78,16 +84,45 @@ public class NPC : MonoBehaviourPun
 
     void Update()
     {
-        // ✅ 귀속 상태면 아무 동작도 하지 않음
-        if (charmedByActorNumber != 0)
-            return;
+        if (charmedByActorNumber != 0) return;
 
         if (playerIsClose && localPlayerInventory != null && Input.GetKeyDown(KeyCode.E) && !DialogueManager.IsDialogueActive)
         {
-            bool giftInteraction = RequestGiftInteraction();
-            if (!giftInteraction)
-                TriggerRegularDialogue();
+            // 상호작용 우선순위
+            // 1. 퀘스트 완료 확인
+            if (CheckForQuestCompletion()) return;
+
+            // 2. 선물 주기 확인
+            if (RequestGiftInteraction()) return;
+
+            // 3. 퀘스트 제안 확인
+            if (CheckForQuestOffer()) return;
+
+            // 4. 일반 대화
+            TriggerRegularDialogue();
         }
+    }
+
+    private bool CheckForQuestCompletion()
+    {
+        if (questToOffer == null || localPlayerQuestLog == null) return false;
+
+        QuestStatus status = localPlayerQuestLog.GetQuestStatus(questToOffer.questID);
+
+        // 퀘스트가 '완료 가능' 상태일 때
+        if (status != null && status.isCompleted)
+        {
+            // 서버에 퀘스트 완료 및 보상 지급 요청
+            ServerMasterClient.Instance.pv.RPC("RpcRequestQuestComplete",
+                RpcTarget.MasterClient,
+                PhotonNetwork.LocalPlayer.ActorNumber,
+                questToOffer.questID);
+
+            // 완료 대화 시작
+            FindObjectOfType<DialogueManager>().StartDialogue(questToOffer.completionDialogue, this);
+            return true;
+        }
+        return false;
     }
 
 
@@ -174,21 +209,12 @@ public class NPC : MonoBehaviourPun
             if (localPlayerInventory.HasItem(itemID))
             {
                 giftItemID = itemID;
-
-                //  마스터면 직접 처리, 아니면 RPC로 요청
-                if (PhotonNetwork.IsMasterClient)
-                {
-                    Debug.Log("[NPC] 단일 테스트 모드 (마스터 직접 귀속 처리)");
-                    HandleLocalLikability(localPlayerInventory.pv.Owner.ActorNumber, likabilityBonus);
-                }
-                else
-                {
-                    ServerMasterClient.Instance.pv.RPC("RpcRequestChangeLikability", RpcTarget.MasterClient,
-                        localPlayerInventory.pv.Owner.ActorNumber,
-                        npcPV.ViewID,
-                        likabilityBonus,
-                        giftItemID);
-                }
+                // (서버에 호감도 변경 요청 RPC 전송)
+                ServerMasterClient.Instance.pv.RPC("RpcRequestChangeLikability", RpcTarget.MasterClient,
+                    localPlayerInventory.pv.Owner.ActorNumber,
+                    photonView.ViewID,
+                    likabilityBonus,
+                    giftItemID); // giftItemID 전달
 
                 FindObjectOfType<DialogueManager>().StartDialogue(thankYouDialogue, this);
                 return true;
@@ -208,6 +234,21 @@ public class NPC : MonoBehaviourPun
         return false;
     }
 
+    private bool CheckForQuestOffer()
+    {
+        if (questToOffer == null || localPlayerQuestLog == null) return false;
+
+        // 이미 수락했거나 완료한 퀘스트가 아닌지 확인
+        if (localPlayerQuestLog.GetQuestStatus(questToOffer.questID) == null &&
+            !localPlayerQuestLog.HasCompletedQuest(questToOffer.questID))
+        {
+            // 퀘스트 제안 대화 시작
+            // (DialogueManager가 이 대화의 선택지를 보고 퀘스트를 수락하도록 수정 필요)
+            FindObjectOfType<DialogueManager>().StartDialogue(questToOffer.startDialogue, this, questToOffer);
+            return true;
+        }
+        return false;
+    }
 
     [PunRPC]
     public void RpcChangeLikability(int likabilityChange)
@@ -248,6 +289,7 @@ public class NPC : MonoBehaviourPun
         {
             playerIsClose = true;
             localPlayerInventory = other.GetComponent<Inventory>();
+            localPlayerQuestLog = other.GetComponent<PlayerQuestLog>(); // 퀘스트 로그 참조 추가
         }
     }
 
@@ -258,6 +300,7 @@ public class NPC : MonoBehaviourPun
         {
             playerIsClose = false;
             localPlayerInventory = null;
+            localPlayerQuestLog = null; // 퀘스트 로그 참조 해제
         }
     }
 
