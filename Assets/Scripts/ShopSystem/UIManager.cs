@@ -66,7 +66,7 @@ public class UIManager : MonoBehaviour
 
         foreach (var questStatus in questLog.activeQuests.Values)
         {
-            QuestData quest = ServerMasterClient.Instance.GetQuestData(questStatus.questID);
+            QuestData quest = GameManager.Instance.GetQuestData(questStatus.questID);
             if (quest == null) continue;
 
             GameObject slotGO = Instantiate(questSlotPrefab, questLogContent);
@@ -83,7 +83,7 @@ public class UIManager : MonoBehaviour
 
         foreach (string questID in questLog.completedQuestIDs)
         {
-            QuestData quest = ServerMasterClient.Instance.GetQuestData(questID);
+            QuestData quest = GameManager.Instance.GetQuestData(questID);
             if (quest == null) continue;
 
             GameObject slotGO = Instantiate(questSlotPrefab, questLogContent);
@@ -200,7 +200,7 @@ public class UIManager : MonoBehaviour
 
     public void UpdateInventoryUI()
     {
-        if (localInventory == null || ServerMasterClient.Instance == null)
+        if (localInventory == null || GameManager.Instance == null)
         {
             Debug.LogError("로컬 인벤토리 또는 ServerMasterClient가 준비되지 않았습니다. UI 갱신 실패.");
             return;
@@ -242,7 +242,7 @@ public class UIManager : MonoBehaviour
             if (quantity > 0)
             {
 
-                ItemData data = ServerMasterClient.Instance.GetItemData(itemID);
+                ItemData data = GameManager.Instance.GetItemData(itemID);
 
                 if (data == null)
                 {

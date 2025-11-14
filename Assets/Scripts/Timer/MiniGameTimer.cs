@@ -108,7 +108,7 @@ public class MiniGameTimer : MonoBehaviourPunCallbacks
         if (PhotonNetwork.IsMasterClient)
         {
             // 마스터 클라이언트만 승자 판정 및 결과 전파를 호출
-            ServerMasterClient.Instance?.AnnounceWinner();
+            GameManager.Instance?.AnnounceWinner();
         }
     }
 

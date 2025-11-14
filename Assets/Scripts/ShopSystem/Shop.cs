@@ -25,19 +25,19 @@ public class Shop : MonoBehaviour
 
     public void RequestPurchase(string itemID)
     {
-        if (ServerMasterClient.Instance == null)
+        if (GameManager.Instance == null)
         {
             Debug.LogError("구매 요청 실패: ServerMasterClient 인스턴스가 존재하지 않아 RPC를 보낼 수 없습니다.");
             return;
         }
 
-        if (ServerMasterClient.Instance.pv == null)
+        if (GameManager.Instance.pv == null)
         {
             Debug.LogError("구매 요청 실패: ServerMasterClient의 PhotonView(pv)가 할당되지 않았습니다.");
             return;
         }
 
-        ServerMasterClient.Instance.pv.RPC(
+        GameManager.Instance.pv.RPC(
             "RpcRequestBuyItem",
             RpcTarget.MasterClient,
             itemID,
