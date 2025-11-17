@@ -9,6 +9,7 @@ using static UnityEngine.EventSystems.EventTrigger;
 public class UIManager : MonoBehaviour
 {
     public static UIManager instance;
+    private ItemSlot[] inventorySlots;
 
     [Header("UI Elements")]
     public TextMeshProUGUI goldText;
@@ -44,6 +45,18 @@ public class UIManager : MonoBehaviour
     void Start()
     {
         FindLocalPlayerInventory();
+        
+
+    // 인벤토리 슬롯들 가져오기 (씬에 미리 배치된 것들)
+    inventorySlots = inventoryContent.GetComponentsInChildren<ItemSlot>(true);
+       Debug.Log($"[UIManager] 인벤토리 슬롯 수: {inventorySlots.Length}");
+
+    // 처음엔 전부 비워두기
+    foreach (var slot in inventorySlots)
+    {
+        slot.Clear();
+    }
+        
     }
 
     public void ToggleQuestLogPanel()
@@ -197,81 +210,62 @@ public class UIManager : MonoBehaviour
             }
         }
     }
+public void UpdateInventoryUI()
+{
+      Debug.Log("[UIManager] UpdateInventoryUI 호출됨");
 
-    public void UpdateInventoryUI()
+    if (localInventory == null || ServerMasterClient.Instance == null)
     {
-        if (localInventory == null || ServerMasterClient.Instance == null)
-        {
-            Debug.LogError("로컬 인벤토리 또는 ServerMasterClient가 준비되지 않았습니다. UI 갱신 실패.");
-            return;
-        }
-
-        foreach (Transform child in inventoryContent)
-        {
-            Destroy(child.gameObject);
-        }
-
-        List<Inventory.ItemEntry> currentItems = localInventory.GetItems();
-
-
-        Debug.Log("--- UIManager: 인벤토리 UI 갱신 중 ---");
-
-        if (currentItems == null || currentItems.Count == 0)
-        {
-            Debug.Log("인벤토리가 현재 비어있습니다 (0개).");
-        }
-        else
-        {
-            Debug.Log($"인벤토리 아이템 발견: {currentItems.Count} 종류.");
-            foreach (var entry in currentItems)
-            {
-                Debug.Log($"   -> 아이템 ID: {entry.itemID}, 수량: {entry.quantity}개");
-            }
-        }
-
-        Debug.Log("------------------------------------------");
-
-
-        if (currentItems == null) return;
-
-        foreach (Inventory.ItemEntry itemEntry in currentItems)
-        {
-            string itemID = itemEntry.itemID;
-            int quantity = itemEntry.quantity;
-
-            if (quantity > 0)
-            {
-
-                ItemData data = ServerMasterClient.Instance.GetItemData(itemID);
-
-                if (data == null)
-                {
-                    Debug.LogError($"[UIManager ERROR] ItemData를 찾을 수 없습니다. ItemID: '{itemID}'.");
-                    continue;
-                }
-
-                GameObject slotGO = Instantiate(itemSlotPrefab, inventoryContent);
-                ItemSlot slotComponent = slotGO.GetComponent<ItemSlot>();
-
-                if (slotComponent != null)
-                {
-                    slotComponent.SetItem(data, quantity); 
-                }
-                else
-                {
-                    TextMeshProUGUI itemText = slotGO.GetComponentInChildren<TextMeshProUGUI>();
-                    if (itemText != null)
-                    {
-                        itemText.text = $"{data.itemName} ({quantity})";
-                    }
-                    else
-                    {
-                        Debug.LogWarning($"ItemSlot 프리팹에 ItemSlot 및 TextMeshProUGUI 컴포넌트가 없습니다. ID: {itemID}");
-                    }
-                }
-            }
-        }
+        Debug.LogError("로컬 인벤토리 또는 ServerMasterClient가 준비되지 않았습니다. UI 갱신 실패.");
+        return;
     }
+
+    // 1) Content 밑에 미리 배치해 둔 ItemSlot들을 한 번만 얻어오기
+    if (inventorySlots == null || inventorySlots.Length == 0)
+    {
+        inventorySlots = inventoryContent.GetComponentsInChildren<ItemSlot>(true);
+    }
+
+    // 2) 슬롯 내용 싹 비우기 (배경 슬롯 자체는 그대로 둠)
+    foreach (var slot in inventorySlots)
+    {
+        slot.Clear();   // 아이콘/텍스트만 끔
+    }
+
+    // 3) 인벤토리에 실제 들어있는 아이템 가져오기
+    List<Inventory.ItemEntry> currentItems = localInventory.GetItems();
+
+    if (currentItems == null || currentItems.Count == 0)
+    {
+        Debug.Log("인벤토리가 현재 비어있습니다 (0개).");
+        return;
+    }
+
+    int slotIndex = 0;
+
+    foreach (Inventory.ItemEntry itemEntry in currentItems)
+    {
+        if (itemEntry.quantity <= 0) continue;
+        if (slotIndex >= inventorySlots.Length) break; // 슬롯 개수 초과하면 그만
+
+        string itemID = itemEntry.itemID;
+        int quantity = itemEntry.quantity;
+
+        ItemData data = ServerMasterClient.Instance.GetItemData(itemID);
+        if (data == null)
+        {
+            Debug.LogError($"[UIManager ERROR] ItemData를 찾을 수 없습니다. ItemID: '{itemID}'.");
+            continue;
+        }
+
+        ItemSlot slot = inventorySlots[slotIndex];
+        slot.SetItem(data, quantity);   // 여기서 아이콘 + x수량 켜줌
+
+        slotIndex++;
+    }
+}
+
+
 
     private void ShowConfirmationPopup(ItemData item, Shop shopInstance)
     {

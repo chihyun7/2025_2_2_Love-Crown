@@ -146,31 +146,28 @@ public class Inventory : MonoBehaviourPunCallbacks, IPunObservable
         return entry.quantity > 0;
     }
 
-    private void UpdateLocalUI()
+   private void UpdateLocalUI()
+{
+    if (items.Count == 0)
     {
-        if (items.Count == 0)
+        Debug.Log("Inventory is empty.");
+    }
+    else
+    {
+        foreach (var entry in items)
         {
-            Debug.Log("Inventory is empty.");
-        }
-        else
-        {
-            foreach (var entry in items)
-            {
-                Debug.Log($"Item ID: {entry.itemID}, Quantity: {entry.quantity}");
-            }
-        }
-
-        if (UIManager.instance != null)
-        {
-            UIManager.instance.UpdateGoldText(gold);
-
-            // 인벤토리 패널이 열려 있는 경우에만 아이템 목록을 갱신
-            if (UIManager.instance.inventoryPanel != null && UIManager.instance.inventoryPanel.activeInHierarchy)
-            {
-                UIManager.instance.UpdateInventoryUI();
-            }
+            Debug.Log($"Item ID: {entry.itemID}, Quantity: {entry.quantity}");
         }
     }
+
+    if (UIManager.instance != null)
+    {
+        UIManager.instance.UpdateGoldText(gold);
+
+        // ★ 패널이 닫혀 있어도 그냥 항상 인벤토리 UI 갱신
+        UIManager.instance.UpdateInventoryUI();
+    }
+}
 
     public void OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)
     {

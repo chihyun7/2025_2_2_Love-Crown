@@ -45,19 +45,75 @@ public class ItemSlot : MonoBehaviour
         }
     }
 
-    private void SetUIData(ItemData item, int quantity, int price)
-    {
-        currentItemID = item.itemID;
+private void SetUIData(ItemData item, int quantity, int price)
+{
+    currentItemID = item.itemID;
 
-        if (itemIcon != null) itemIcon.sprite = item.icon;
-        if (itemNameText != null) itemNameText.text = item.itemName;
-        if (itemQuantityText != null) itemQuantityText.text = $"x{quantity}";
-        if (itemPriceText != null) itemPriceText.text = $"{price} G";
+    if (itemIcon != null)
+    {
+        itemIcon.sprite = item.icon;
+        itemIcon.gameObject.SetActive(true);   // ← 아이템 들어오면 켜기
     }
+
+    if (itemNameText != null)
+    {
+        itemNameText.text = item.itemName;
+        itemNameText.gameObject.SetActive(true);
+    }
+
+    if (itemQuantityText != null)
+    {
+        itemQuantityText.text = $"x{quantity}";
+        itemQuantityText.gameObject.SetActive(true);  // ← 수량도 켜기
+    }
+
+    if (itemPriceText != null)
+    {
+        itemPriceText.text = $"{price} G";
+        // 상점 전용이라 Initialize()에서만 보이게 할거면 거기서만 켜줘도 됨
+    }
+}
+
 
 
     private void OnItemUsed(string itemID)
     {
         Debug.Log($"[ItemSlot] 인벤토리에서 아이템 {itemID} 사용 시도.");
     }
+
+    public void Clear()
+{
+    currentItemID = null;
+
+    // 아이콘/텍스트 비우고 끄기
+    if (itemIcon != null)
+    {
+        itemIcon.sprite = null;
+        itemIcon.gameObject.SetActive(false);
+    }
+
+    if (itemNameText != null)
+    {
+        itemNameText.text = "";
+        itemNameText.gameObject.SetActive(false);
+    }
+
+    if (itemQuantityText != null)
+    {
+        itemQuantityText.text = "";
+        itemQuantityText.gameObject.SetActive(false);
+    }
+
+    if (itemPriceText != null)
+    {
+        itemPriceText.text = "";
+        itemPriceText.gameObject.SetActive(false);
+    }
+
+    if (button != null)
+    {
+        button.onClick.RemoveAllListeners();
+        button.interactable = false;
+    }
+}
 }
