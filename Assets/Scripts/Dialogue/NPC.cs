@@ -113,7 +113,7 @@ public class NPC : MonoBehaviourPun
         if (status != null && status.isCompleted)
         {
             // 서버에 퀘스트 완료 및 보상 지급 요청
-            ServerMasterClient.Instance.pv.RPC("RpcRequestQuestComplete",
+            GameManager.Instance.pv.RPC("RpcRequestQuestComplete",
                 RpcTarget.MasterClient,
                 PhotonNetwork.LocalPlayer.ActorNumber,
                 questToOffer.questID);
@@ -164,9 +164,9 @@ public class NPC : MonoBehaviourPun
         }
 
         // 서버에게 호감도 변경 요청 (선물 아님 -> giftItemID = null)
-        if (ServerMasterClient.Instance != null)
+        if (GameManager.Instance != null)
         {
-            ServerMasterClient.Instance.pv.RPC(
+            GameManager.Instance.pv.RPC(
                 "RpcRequestChangeLikability",
                 RpcTarget.MasterClient,
                 PhotonNetwork.LocalPlayer.ActorNumber, // 요청자
@@ -210,7 +210,7 @@ public class NPC : MonoBehaviourPun
             {
                 giftItemID = itemID;
                 // (서버에 호감도 변경 요청 RPC 전송)
-                ServerMasterClient.Instance.pv.RPC("RpcRequestChangeLikability", RpcTarget.MasterClient,
+                GameManager.Instance.pv.RPC("RpcRequestChangeLikability", RpcTarget.MasterClient,
                     localPlayerInventory.pv.Owner.ActorNumber,
                     photonView.ViewID,
                     likabilityBonus,

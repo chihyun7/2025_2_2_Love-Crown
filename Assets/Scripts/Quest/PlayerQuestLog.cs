@@ -64,7 +64,7 @@ public class PlayerQuestLog : MonoBehaviour
 
         foreach (var questStatus in activeQuests.Values)
         {
-            QuestData quest = ServerMasterClient.Instance.GetQuestData(questStatus.questID);
+            QuestData quest = GameManager.Instance.GetQuestData(questStatus.questID);
             if (quest != null && !questStatus.isCompleted &&
                 quest.objective.type == QuestObjective.ObjectiveType.Collect &&
                 quest.objective.targetItemID == objectiveItemID)
@@ -84,7 +84,7 @@ public class PlayerQuestLog : MonoBehaviour
             activeQuests[questID].currentProgress = newProgress;
             Debug.Log($"퀘스트 진행도 갱신: {questID} - {newProgress}");
 
-            QuestData quest = ServerMasterClient.Instance.GetQuestData(questID);
+            QuestData quest = GameManager.Instance.GetQuestData(questID);
             if (quest != null && newProgress >= quest.objective.targetItemQuantity)
             {
                 activeQuests[questID].isCompleted = true; // 완료 상태로 변경
