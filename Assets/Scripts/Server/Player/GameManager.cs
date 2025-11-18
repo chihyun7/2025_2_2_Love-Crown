@@ -302,4 +302,69 @@ public class GameManager : MonoBehaviourPunCallbacks
         Debug.Log($"[Server] Player {requesterActorID} 퀘스트 완료 및 보상 지급: {questID}");
     }
 
+    // === 상자 오픈 RPC (마스터 전용) ===
+    [PunRPC]
+    public void RpcOpenChest(int chestViewID, int requesterActorID)
+    {
+        if (!PhotonNetwork.IsMasterClient) return;
+
+        PhotonView chestView = PhotonView.Find(chestViewID);
+        if (chestView == null)
+        {
+            Debug.LogWarning($"[Server] Chest ViewID {chestViewID} 를 찾지 못했습니다.");
+            return;
+        }
+
+        GiftChest chest = chestView.GetComponent<GiftChest>();
+        if (chest == null)
+        {
+            Debug.LogWarning("[Server] GiftChest 컴포넌트가 없습니다.");
+            return;
+        }
+
+        // 이미 열린 상자면 무시
+        if (chest.IsOpened)
+        {
+            Debug.Log("[Server] 이미 열린 상자 요청 무시");
+            return;
+        }
+
+        // 보상 아이템 목록이 비어있으면 무시
+        if (chest.rewardItemIDs == null || chest.rewardItemIDs.Count == 0)
+        {
+            Debug.LogWarning("[Server] 상자에 rewardItemIDs 가 비어있습니다.");
+            return;
+        }
+
+        // 랜덤 아이템 선택
+        int randIndex = Random.Range(0, chest.rewardItemIDs.Count);
+        string itemID = chest.rewardItemIDs[randIndex];
+
+        ItemData itemData = GetItemData(itemID);
+        if (itemData == null)
+        {
+            Debug.LogWarning($"[Server] ItemDatabase 에 {itemID} 가 없습니다.");
+            return;
+        }
+
+        // 플레이어 인벤토리 찾기
+        Inventory playerInventory = FindPlayerInventory(requesterActorID);
+        if (playerInventory == null)
+        {
+            Debug.LogWarning($"[Server] Actor {requesterActorID} 의 인벤토리를 찾지 못했습니다.");
+            return;
+        }
+
+        // === 인벤토리에 아이템 지급 ===
+        // 상점에서 쓰던 RpcExecuteBuy를 그대로 활용 (가격은 0으로)
+        playerInventory.pv.RPC("RpcExecuteBuy", RpcTarget.All, itemID, 0);
+
+        Debug.Log($"[Server] Player {requesterActorID} 에게 상자 {chestViewID} 로부터 {itemID} 지급");
+
+        // === 상자를 "열림" 상태로 전파 및 리스폰 예약 ===
+        chestView.RPC("RpcSetChestState", RpcTarget.All, true);
+        chest.StartRespawnOnMaster();
+    }
+
+
 }
