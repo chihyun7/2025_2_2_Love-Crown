@@ -14,5 +14,5 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   itemID: Item_B
   itemName: "\uB0A1\uC740 \uB9CC\uB144\uD544"
-  icon: {fileID: 136654876, guid: c088e1100cb16d6459e4590fc76d0ebc, type: 3}
+  icon: {fileID: -2005865315, guid: 9bb93d5e28d8e6a49b761d28acd072c9, type: 3}
   price: 10

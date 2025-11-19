@@ -200,78 +200,85 @@ public class UIManager : MonoBehaviour
 
     public void UpdateInventoryUI()
     {
-        if (localInventory == null || GameManager.Instance == null)
+        if (localInventory == null || !localInventory.pv.IsMine)
         {
-            Debug.LogError("로컬 인벤토리 또는 ServerMasterClient가 준비되지 않았습니다. UI 갱신 실패.");
+            Debug.LogWarning("[UIManager] localInventory가 null이거나 IsMine이 아님. 다시 찾습니다.");
+            FindLocalPlayerInventory();
+        }
+
+        if (localInventory == null)
+        {
+            Debug.LogError("[UIManager] 여전히 로컬 인벤토리를 찾지 못했습니다.");
             return;
         }
 
-        foreach (Transform child in inventoryContent)
+        Debug.Log($"[UIManager] localInventory Owner={localInventory.pv.Owner.ActorNumber}");
+
+
+        if (localInventory == null || GameManager.Instance == null)
         {
-            Destroy(child.gameObject);
+            Debug.LogError("로컬 인벤토리 또는 GameManager가 준비되지 않았습니다. UI 갱신 실패.");
+            return;
         }
 
+        // 1) Content 밑에 있는 ItemSlot 전부 가져오기 (비활성 포함)
+        ItemSlot[] slots = inventoryContent.GetComponentsInChildren<ItemSlot>(true);
+        Debug.Log($"[UIManager] 인벤토리 슬롯 개수: {slots.Length}");
+
+        if (slots == null || slots.Length == 0)
+        {
+            Debug.LogError("인벤토리 Content 밑에 ItemSlot 컴포넌트가 하나도 없습니다.");
+            return;
+        }
+
+        // 2) 모든 슬롯 비우기
+        foreach (var slot in slots)
+        {
+            slot.Clear();
+        }
+
+        // 3) 인벤토리 아이템 리스트 가져오기
         List<Inventory.ItemEntry> currentItems = localInventory.GetItems();
 
-
         Debug.Log("--- UIManager: 인벤토리 UI 갱신 중 ---");
-
         if (currentItems == null || currentItems.Count == 0)
         {
             Debug.Log("인벤토리가 현재 비어있습니다 (0개).");
+            return;
         }
-        else
+
+        // 아이템 목록 찍어보기
+        foreach (var e in currentItems)
         {
-            Debug.Log($"인벤토리 아이템 발견: {currentItems.Count} 종류.");
-            foreach (var entry in currentItems)
+            Debug.Log($"[UIManager] 인벤토리 아이템: {e.itemID}, x{e.quantity}");
+        }
+
+        // 4) 아이템을 슬롯에 채우기
+        int slotIndex = 0;
+
+        foreach (var entry in currentItems)
+        {
+            if (entry.quantity <= 0) continue;
+            if (slotIndex >= slots.Length) break;
+
+            string itemID = entry.itemID;
+            int quantity = entry.quantity;
+
+            ItemData data = GameManager.Instance.GetItemData(itemID);
+            if (data == null)
             {
-                Debug.Log($"   -> 아이템 ID: {entry.itemID}, 수량: {entry.quantity}개");
+                Debug.LogError($"[UIManager ERROR] ItemData를 찾을 수 없습니다. ItemID: '{itemID}'.");
+                continue;
             }
+
+            Debug.Log($"[UIManager] 슬롯 {slotIndex} 에 SetItem 호출: {itemID}, x{quantity}");
+            slots[slotIndex].SetItem(data, quantity);
+            slotIndex++;
         }
 
         Debug.Log("------------------------------------------");
-
-
-        if (currentItems == null) return;
-
-        foreach (Inventory.ItemEntry itemEntry in currentItems)
-        {
-            string itemID = itemEntry.itemID;
-            int quantity = itemEntry.quantity;
-
-            if (quantity > 0)
-            {
-
-                ItemData data = GameManager.Instance.GetItemData(itemID);
-
-                if (data == null)
-                {
-                    Debug.LogError($"[UIManager ERROR] ItemData를 찾을 수 없습니다. ItemID: '{itemID}'.");
-                    continue;
-                }
-
-                GameObject slotGO = Instantiate(itemSlotPrefab, inventoryContent);
-                ItemSlot slotComponent = slotGO.GetComponent<ItemSlot>();
-
-                if (slotComponent != null)
-                {
-                    slotComponent.SetItem(data, quantity); 
-                }
-                else
-                {
-                    TextMeshProUGUI itemText = slotGO.GetComponentInChildren<TextMeshProUGUI>();
-                    if (itemText != null)
-                    {
-                        itemText.text = $"{data.itemName} ({quantity})";
-                    }
-                    else
-                    {
-                        Debug.LogWarning($"ItemSlot 프리팹에 ItemSlot 및 TextMeshProUGUI 컴포넌트가 없습니다. ID: {itemID}");
-                    }
-                }
-            }
-        }
     }
+
 
     private void ShowConfirmationPopup(ItemData item, Shop shopInstance)
     {

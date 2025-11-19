@@ -144,6 +144,12 @@ MonoBehaviour:
   rewardItemIDs:
   - Item_A
   - Item_B
+  - Item_C
+  - Item_D
+  - Item_E
+  - Item_F
+  - Item_G
+  - Item_H
   respawnDelay: 30
   closedVisual: {fileID: 0}
   openedVisual: {fileID: 0}

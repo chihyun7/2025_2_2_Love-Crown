@@ -148,7 +148,9 @@ public class Inventory : MonoBehaviourPunCallbacks, IPunObservable
 
    private void UpdateLocalUI()
 {
-    if (items.Count == 0)
+        Debug.Log($"[Inventory] UpdateLocalUI 호출, Owner={pv.Owner.ActorNumber}, items.Count={items.Count}");
+
+        if (items.Count == 0)
     {
         Debug.Log("Inventory is empty.");
     }
@@ -212,8 +214,15 @@ public class Inventory : MonoBehaviourPunCallbacks, IPunObservable
     [PunRPC]
     public void RpcAddItem(string itemID, int quantity)
     {
+        Debug.Log($"[Inventory] RpcAddItem on Owner={pv.Owner.ActorNumber}, IsMine={pv.IsMine}");
+
         AddItemToList(itemID, quantity);
-        if (pv.IsMine) UpdateLocalUI();
+
+        if (pv.IsMine)
+        {
+            Debug.Log("[Inventory] 로컬 인벤토리라서 UpdateLocalUI 호출");
+            UpdateLocalUI();
+        }
     }
 
 

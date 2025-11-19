@@ -83,6 +83,101 @@ public class GameManager : MonoBehaviourPunCallbacks
         return charmedCountPerPlayer.TryGetValue(actorNumber, out var v) ? v : 0;
     }
 
+    // ==========================
+    // --- 상자 (GiftChest 보상) ---
+    // ==========================
+    [PunRPC]
+    public void RpcOpenChest(int chestViewID, int playerActorNumber)
+    {
+        // 마스터만 처리
+        if (!PhotonNetwork.IsMasterClient)
+        {
+            Debug.LogWarning("[GameManager] RpcOpenChest는 마스터에서만 처리됩니다.");
+            return;
+        }
+
+        // 1) ViewID로 상자 PhotonView 찾기
+        PhotonView chestPv = PhotonView.Find(chestViewID);
+        if (chestPv == null)
+        {
+            Debug.LogWarning($"[GameManager] ViewID {chestViewID}에 해당하는 상자를 찾을 수 없습니다.");
+            return;
+        }
+
+        GiftChest chest = chestPv.GetComponent<GiftChest>();
+        if (chest == null)
+        {
+            Debug.LogWarning("[GameManager] GiftChest 컴포넌트를 찾을 수 없습니다.");
+            return;
+        }
+
+        // 이미 열린 상자면 무시
+        if (chest.IsOpened)
+        {
+            Debug.Log("[GameManager] 이미 열린 상자입니다. 요청 무시.");
+            return;
+        }
+
+        // 2) 상자 열림 상태 동기화 (모든 클라)
+        chest.photonView.RPC("RpcSetChestState", RpcTarget.All, true);
+        Debug.Log("[GameManager] 상자 열림 상태를 모든 클라이언트에 동기화했습니다.");
+
+        // 3) 보상 아이템 결정
+        string rewardItemID = GetRandomRewardFromChest(chest);
+        if (string.IsNullOrEmpty(rewardItemID))
+        {
+            Debug.LogWarning("[GameManager] rewardItemIDs가 비어 있어 보상을 지급하지 않았습니다.");
+        }
+        else
+        {
+            // 4) 보상 받을 플레이어의 Inventory 찾기
+            Inventory playerInventory = FindPlayerInventory(playerActorNumber);
+
+            if (playerInventory != null && playerInventory.pv != null)
+            {
+                // 퀘스트 보상과 동일한 패턴: RpcTarget.All 로 해당 인벤토리 인스턴스에만 적용
+                playerInventory.pv.RPC("RpcAddItem", RpcTarget.All, rewardItemID, 1);
+
+                Debug.Log($"[GameManager] Player {playerActorNumber}에게 상자 보상 지급: {rewardItemID}");
+            }
+            else
+            {
+                Debug.LogWarning("[GameManager] 대상 플레이어의 Inventory를 찾지 못했습니다. 보상 지급 실패.");
+            }
+        }
+
+        // 5) 상자 리스폰 루틴 시작 (마스터에서만 동작)
+        chest.StartRespawnOnMaster();
+    }
+
+    // 상자의 rewardItemIDs 리스트에서 랜덤으로 1개 선택
+    private string GetRandomRewardFromChest(GiftChest chest)
+    {
+        // 일반 아이템 8개 → 각각 10% 확률
+        // 총 80% 확률에서만 아이템 지급
+        // (나머지 20% 는 지금은 "아이템 없음")
+
+        if (chest.rewardItemIDs == null || chest.rewardItemIDs.Count == 0)
+            return null;
+
+        float roll = Random.Range(0f, 1f);  // 0 ~ 1 사이 확률
+
+        if (roll > 0.80f)
+        {
+            // 20% 확률 → 아무것도 안 나옴
+            Debug.Log("[Chest] 이번에는 아이템 없음 (확률 20%)");
+            return null;
+        }
+
+        // ★ 여기 오면 80% 확률 구역
+        // 일반 아이템 8개가 각각 10%
+        int index = Random.Range(0, chest.rewardItemIDs.Count);
+        string chosen = chest.rewardItemIDs[index];
+
+        Debug.Log($"[Chest] 일반 아이템 지급: {chosen}");
+        return chosen;
+    }
+
     // --- 상점 ---
     [PunRPC]
     public void RpcRequestBuyItem(string itemID, Player requesterPlayer)
