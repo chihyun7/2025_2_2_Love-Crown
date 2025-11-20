@@ -97,8 +97,8 @@ public class TestCharacterPlayerMoveMent : MonoBehaviourPunCallbacks, IPunObserv
 
         if (Input.GetMouseButtonDown(1))
         {
-            StartCoroutine(PlayerAttackStart());
             Debug.Log("플레이어 공격");
+            photonView.RPC("RequestAttackRPC", RpcTarget.All);
         }
 
        
@@ -135,6 +135,12 @@ public class TestCharacterPlayerMoveMent : MonoBehaviourPunCallbacks, IPunObserv
 
         animator.SetBool(animID_IsMoving, networkIsMoving);
         animator.SetBool(animID_IsRunning, networkIsRunning);
+    }
+    [PunRPC]
+    public void RequestAttackRPC()
+    {
+        StartCoroutine(PlayerAttackStart());
+        Debug.Log("플레이어 공격 동기화 완료");
     }
     public void OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)
     {
@@ -192,6 +198,7 @@ public class TestCharacterPlayerMoveMent : MonoBehaviourPunCallbacks, IPunObserv
 
     IEnumerator PlayerAttact()
     {
+        Debug.Log("코루틴 진입");
         walkSpeed = 0f;
         runSpeed = 0f;
         yield return new WaitForSeconds(15f);
@@ -201,7 +208,7 @@ public class TestCharacterPlayerMoveMent : MonoBehaviourPunCallbacks, IPunObserv
     IEnumerator PlayerAttackStart()
     {
         player_AttackObject.gameObject.SetActive(true);
-        yield return new WaitForSeconds(1.5f);
+        yield return new WaitForSeconds(3f);
         player_AttackObject.gameObject.SetActive(false);
     }
 }
