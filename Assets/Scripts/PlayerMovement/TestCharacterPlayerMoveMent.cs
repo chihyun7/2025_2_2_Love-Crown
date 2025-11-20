@@ -17,6 +17,8 @@ public class TestCharacterPlayerMoveMent : MonoBehaviourPunCallbacks, IPunObserv
     public float mouseSensitivity = 250f;
     public float cameraUpDownLimit = 80f;
 
+    public GameObject player_AttackObject;
+
     private float cameraRotationX = 0f;
 
     private Vector3 networkPosition;
@@ -93,6 +95,13 @@ public class TestCharacterPlayerMoveMent : MonoBehaviourPunCallbacks, IPunObserv
             playerCamera.transform.localRotation = Quaternion.Euler(cameraRotationX, 0, 0);
         }
 
+        if (Input.GetMouseButtonDown(1))
+        {
+            StartCoroutine(PlayerAttackStart());
+            Debug.Log("플레이어 공격");
+        }
+
+       
         
 
         float h = Input.GetAxis("Horizontal");
@@ -127,7 +136,6 @@ public class TestCharacterPlayerMoveMent : MonoBehaviourPunCallbacks, IPunObserv
         animator.SetBool(animID_IsMoving, networkIsMoving);
         animator.SetBool(animID_IsRunning, networkIsRunning);
     }
-
     public void OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)
     {
         bool currentIsRunning = (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift)) && isMoving;
@@ -166,13 +174,34 @@ public class TestCharacterPlayerMoveMent : MonoBehaviourPunCallbacks, IPunObserv
             Debug.Log("방해 오브젝트와 충돌! 15초 동안 플레이어 속도 감소");
         }
 
-        IEnumerator DownPlayerSpeed()
+        if(other.CompareTag("PlayerAttact") && photonView.IsMine)
         {
-            walkSpeed = 2f;
-            runSpeed = 3f;
-            yield return new WaitForSeconds(15f);
-            walkSpeed = 5f;
-            runSpeed = 10f;
+            StartCoroutine(PlayerAttact());
+            Debug.Log("15초동안 플레이어 정지");
         }
+    }
+
+    IEnumerator DownPlayerSpeed()
+    {
+        walkSpeed = 2f;
+        runSpeed = 3f;
+        yield return new WaitForSeconds(15f);
+        walkSpeed = 5f;
+        runSpeed = 10f;
+    }
+
+    IEnumerator PlayerAttact()
+    {
+        walkSpeed = 0f;
+        runSpeed = 0f;
+        yield return new WaitForSeconds(15f);
+        walkSpeed = 5f;
+        runSpeed = 10f;
+    }
+    IEnumerator PlayerAttackStart()
+    {
+        player_AttackObject.gameObject.SetActive(true);
+        yield return new WaitForSeconds(1.5f);
+        player_AttackObject.gameObject.SetActive(false);
     }
 }
