@@ -86,10 +86,8 @@ public class TestCharacterPlayerMoveMent : MonoBehaviourPunCallbacks, IPunObserv
             float mouseX = Input.GetAxis("Mouse X") * mouseSensitivity * Time.deltaTime;
             float mouseY = Input.GetAxis("Mouse Y") * mouseSensitivity * Time.deltaTime;
 
-            // 플레이어 좌우 회전 (Y축)
             transform.Rotate(0, mouseX, 0);
 
-            // 카메라 상하 회전 (X축) 제한 포함
             cameraRotationX -= mouseY;
             cameraRotationX = Mathf.Clamp(cameraRotationX, -cameraUpDownLimit, cameraUpDownLimit);
             playerCamera.transform.localRotation = Quaternion.Euler(cameraRotationX, 0, 0);
@@ -97,11 +95,9 @@ public class TestCharacterPlayerMoveMent : MonoBehaviourPunCallbacks, IPunObserv
 
         
 
-        // --- 이동 입력 ---
         float h = Input.GetAxis("Horizontal");
         float v = Input.GetAxis("Vertical");
 
-        // 이동 방향을 카메라 기준으로 변경
         Vector3 camForward = playerCamera.transform.forward;
         Vector3 camRight = playerCamera.transform.right;
         camForward.y = 0;
@@ -125,8 +121,6 @@ public class TestCharacterPlayerMoveMent : MonoBehaviourPunCallbacks, IPunObserv
             Move();
             return;
         }
-
-        // --- 다른 플레이어 동기화 (부드러운 보간) ---
         transform.position = Vector3.Lerp(transform.position, networkPosition, FIXED_LERP_RATE);
         transform.rotation = Quaternion.Slerp(transform.rotation, networkRotation, FIXED_LERP_RATE);
 
@@ -162,5 +156,23 @@ public class TestCharacterPlayerMoveMent : MonoBehaviourPunCallbacks, IPunObserv
 
         Vector3 move = moveDirection * currentSpeed * Time.fixedDeltaTime;
         transform.position += move;
+    }
+
+    private void OnTriggerEnter(Collider other)
+    {
+        if(other.CompareTag("DownPlayerSpeed") && photonView.IsMine)
+        {
+            StartCoroutine(DownPlayerSpeed());
+            Debug.Log("방해 오브젝트와 충돌! 15초 동안 플레이어 속도 감소");
+        }
+
+        IEnumerator DownPlayerSpeed()
+        {
+            walkSpeed = 2f;
+            runSpeed = 3f;
+            yield return new WaitForSeconds(15f);
+            walkSpeed = 5f;
+            runSpeed = 10f;
+        }
     }
 }
