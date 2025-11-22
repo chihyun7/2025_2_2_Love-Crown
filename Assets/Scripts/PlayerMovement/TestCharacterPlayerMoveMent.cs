@@ -4,6 +4,7 @@ using UnityEngine;
 using Photon.Pun;
 using Photon.Realtime;
 using System;
+using Unity.Mathematics;
 
 [RequireComponent(typeof(PhotonView))]
 public class TestCharacterPlayerMoveMent : MonoBehaviourPunCallbacks, IPunObservable
@@ -17,6 +18,8 @@ public class TestCharacterPlayerMoveMent : MonoBehaviourPunCallbacks, IPunObserv
     public float mouseSensitivity = 250f;
     public float cameraUpDownLimit = 80f;
 
+    [Header("캐릭터 캡슐 내부 오브젝트")]
+    public GameObject CharacterObject;
     public GameObject player_AttackObject;
 
     private float cameraRotationX = 0f;
@@ -28,15 +31,23 @@ public class TestCharacterPlayerMoveMent : MonoBehaviourPunCallbacks, IPunObserv
     private bool isMoving = false;
     private bool networkIsMoving = false;
     private bool networkIsRunning = false;
-
+    private bool isMouseRock;
     private Animator animator;
     private int animID_IsMoving;
     private int animID_IsRunning;
-
+    private bool currentIsFallingDown = false;
     private Vector3 moveDirection;
+    private CapsuleCollider capsuleCollider;
+    private float originalYPosition;
+    private float characteroriginalYPosition;
+    private float cameraoriginalYPosition;
+    private float originalCameraRotationX;
+
 
     private void Start()
     {
+        capsuleCollider = GetComponent<CapsuleCollider>();
+
         if (playerCamera == null)
         {
             playerCamera = GetComponentInChildren<Camera>(true);
@@ -83,7 +94,7 @@ public class TestCharacterPlayerMoveMent : MonoBehaviourPunCallbacks, IPunObserv
     {
         if (!photonView.IsMine) return;
 
-        if (!(Input.GetKey(KeyCode.LeftAlt) || Input.GetKey(KeyCode.RightAlt)))
+        if (!(Input.GetKey(KeyCode.LeftAlt) || Input.GetKey(KeyCode.RightAlt) || isMouseRock))
         {
             float mouseX = Input.GetAxis("Mouse X") * mouseSensitivity * Time.deltaTime;
             float mouseY = Input.GetAxis("Mouse Y") * mouseSensitivity * Time.deltaTime;
@@ -94,15 +105,6 @@ public class TestCharacterPlayerMoveMent : MonoBehaviourPunCallbacks, IPunObserv
             cameraRotationX = Mathf.Clamp(cameraRotationX, -cameraUpDownLimit, cameraUpDownLimit);
             playerCamera.transform.localRotation = Quaternion.Euler(cameraRotationX, 0, 0);
         }
-
-        if (Input.GetMouseButtonDown(1))
-        {
-            Debug.Log("플레이어 공격");
-            photonView.RPC("RequestAttackRPC", RpcTarget.All);
-        }
-
-       
-        
 
         float h = Input.GetAxis("Horizontal");
         float v = Input.GetAxis("Vertical");
@@ -121,6 +123,12 @@ public class TestCharacterPlayerMoveMent : MonoBehaviourPunCallbacks, IPunObserv
 
         animator.SetBool(animID_IsMoving, isMoving);
         animator.SetBool(animID_IsRunning, currentIsRunning);
+
+        if (Input.GetMouseButtonDown(1))
+        {
+            Debug.Log("플레이어 공격");
+            photonView.RPC("RequestAttackRPC", RpcTarget.All);
+        }
     }
 
     private void FixedUpdate()
@@ -135,13 +143,17 @@ public class TestCharacterPlayerMoveMent : MonoBehaviourPunCallbacks, IPunObserv
 
         animator.SetBool(animID_IsMoving, networkIsMoving);
         animator.SetBool(animID_IsRunning, networkIsRunning);
+        animator.SetBool("IsFallingDown", currentIsFallingDown);
     }
+
+
     [PunRPC]
     public void RequestAttackRPC()
     {
         StartCoroutine(PlayerAttackStart());
         Debug.Log("플레이어 공격 동기화 완료");
     }
+
     public void OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)
     {
         bool currentIsRunning = (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift)) && isMoving;
@@ -152,6 +164,7 @@ public class TestCharacterPlayerMoveMent : MonoBehaviourPunCallbacks, IPunObserv
             stream.SendNext(transform.rotation);
             stream.SendNext(isMoving);
             stream.SendNext(currentIsRunning);
+            stream.SendNext(currentIsFallingDown);
         }
         else
         {
@@ -159,6 +172,7 @@ public class TestCharacterPlayerMoveMent : MonoBehaviourPunCallbacks, IPunObserv
             networkRotation = (Quaternion)stream.ReceiveNext();
             networkIsMoving = (bool)stream.ReceiveNext();
             networkIsRunning = (bool)stream.ReceiveNext();
+            currentIsFallingDown = (bool)stream.ReceiveNext();
         }
     }
 
@@ -174,18 +188,52 @@ public class TestCharacterPlayerMoveMent : MonoBehaviourPunCallbacks, IPunObserv
 
     private void OnTriggerEnter(Collider other)
     {
-        if(other.CompareTag("DownPlayerSpeed") && photonView.IsMine)
+        if (other.CompareTag("DownPlayerSpeed") && photonView.IsMine)
         {
             StartCoroutine(DownPlayerSpeed());
             Debug.Log("방해 오브젝트와 충돌! 15초 동안 플레이어 속도 감소");
         }
 
-        if(other.CompareTag("PlayerAttact") && photonView.IsMine)
+        if (other.CompareTag("PlayerAttact") && photonView.IsMine)
         {
             StartCoroutine(PlayerAttact());
             Debug.Log("15초동안 플레이어 정지");
         }
+
+        if (other.CompareTag("FullingDownObject") && photonView.IsMine)
+        {
+            Debug.Log("방해 오브젝트 충돌");
+            currentIsFallingDown = true;
+            photonView.RPC("RPCPlayerFullDown", RpcTarget.All);
+        }
     }
+
+    [PunRPC]
+    public void RPCPlayerFullDown()
+    {
+        StartCoroutine(PlayerFullDown());
+
+        Debug.Log("동기화 진행");
+        if (photonView.IsMine)
+        {
+            originalYPosition = transform.position.y;
+            originalCameraRotationX = cameraRotationX;
+
+            if (CharacterObject != null)
+                characteroriginalYPosition = CharacterObject.transform.localPosition.y;
+
+            if (playerCamera != null)
+                cameraoriginalYPosition = playerCamera.transform.localPosition.y;
+
+            isMouseRock = true;
+            capsuleCollider.height = 0.5f;
+            capsuleCollider.center = new Vector3(0, 0.25f, 0);
+
+            if (playerCamera != null)
+                playerCamera.transform.localRotation = Quaternion.Euler(-90, 0, 0);
+        }
+    }
+
 
     IEnumerator DownPlayerSpeed()
     {
@@ -205,10 +253,54 @@ public class TestCharacterPlayerMoveMent : MonoBehaviourPunCallbacks, IPunObserv
         walkSpeed = 5f;
         runSpeed = 10f;
     }
+
     IEnumerator PlayerAttackStart()
     {
         player_AttackObject.gameObject.SetActive(true);
         yield return new WaitForSeconds(3f);
         player_AttackObject.gameObject.SetActive(false);
+    }
+
+    IEnumerator PlayerFullDown()
+    {
+        walkSpeed = 0f;
+        runSpeed = 0f;
+
+        animator.SetBool("IsFallingDown", true);
+        yield return new WaitForSeconds(1.5f);
+        animator.SetBool("IsFallingDown", false);
+
+        if (photonView.IsMine)
+        {
+            capsuleCollider.height = 1.8f;
+            capsuleCollider.center = new Vector3(0, 0.9f, 0);
+
+            transform.position = new Vector3(transform.position.x, originalYPosition, transform.position.z);
+
+            if (playerCamera != null)
+            {
+                playerCamera.transform.localPosition = new Vector3(
+                    playerCamera.transform.localPosition.x,
+                    cameraoriginalYPosition,
+                    playerCamera.transform.localPosition.z);
+
+                cameraRotationX = originalCameraRotationX;
+                playerCamera.transform.localRotation = Quaternion.Euler(cameraRotationX, 0, 0);
+            }
+
+
+            if (CharacterObject != null)
+            {
+                CharacterObject.transform.localPosition = new Vector3(
+                    CharacterObject.transform.localPosition.x,
+                    characteroriginalYPosition,
+                    CharacterObject.transform.localPosition.z);
+            }
+
+            currentIsFallingDown = false;
+            isMouseRock = false;
+            walkSpeed = 5;
+            runSpeed = 10; 
+        }
     }
 }

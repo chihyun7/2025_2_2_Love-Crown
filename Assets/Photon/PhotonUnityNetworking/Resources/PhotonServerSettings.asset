@@ -58,6 +58,8 @@ MonoBehaviour:
   - RpcSetChestState
   - RpcOpenChest
   - RequestAttackRPC
+  - <OnTriggerEnter>g__RPCPlayerFullDown|24_0
+  - RPCPlayerFullDown
   DisableAutoOpenWizard: 1
   ShowSettings: 0
   DevRegionSetOnce: 1
