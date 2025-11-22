@@ -13,6 +13,8 @@ public class Choice
 [System.Serializable]
 public class DialogueLine
 {
+    public bool isPlayer;
+
     [TextArea(2, 5)]
     public string sentence;
     public Choice[] choices;

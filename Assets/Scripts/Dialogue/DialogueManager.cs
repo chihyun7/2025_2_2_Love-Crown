@@ -34,7 +34,6 @@ public class DialogueManager : MonoBehaviour
         localPlayerQuestLog = FindObjectOfType<PlayerQuestLog>();
         if (localPlayerQuestLog == null)
         {
-            // 멀티플레이 환경에서는 내 플레이어의 퀘스트 로그를 찾아야 합니다.
             foreach (var log in FindObjectsOfType<PlayerQuestLog>())
             {
                 if (log.GetComponent<PhotonView>().IsMine)
@@ -45,8 +44,7 @@ public class DialogueManager : MonoBehaviour
             }
         }
 
-        // 플레이어 이동 정지 (내 플레이어만)
-        foreach (var playerMove in FindObjectsOfType<PlayerMove>())
+        foreach (var playerMove in FindObjectsOfType<TestCharacterPlayerMoveMent>())
         {
             if (playerMove.GetComponent<PhotonView>().IsMine)
             {
@@ -81,6 +79,7 @@ public class DialogueManager : MonoBehaviour
     private void OnChoiceSelected(Choice choice)
     {
         if (currentNpc == null) return;
+        if (currentNpc.charmedByActorNumber != 0) return;
 
         if (choice.likabilityChange != 0)
         {
@@ -129,8 +128,7 @@ public class DialogueManager : MonoBehaviour
         dialoguePanel.SetActive(false);
         likabilityText.gameObject.SetActive(false);
 
-        // 플레이어 이동 재개 (내 플레이어만)
-        foreach (var playerMove in FindObjectsOfType<PlayerMove>())
+        foreach (var playerMove in FindObjectsOfType<TestCharacterPlayerMoveMent>())
         {
             if (playerMove.GetComponent<PhotonView>().IsMine)
             {
@@ -148,13 +146,29 @@ public class DialogueManager : MonoBehaviour
     {
         ClearChoiceButtons();
         if (dialogueLines.Count == 0) { EndDialogue(); return; }
+
         DialogueLine currentLine = dialogueLines.Dequeue();
+
+        if (currentLine.isPlayer)
+        {
+            if (PhotonNetwork.IsConnected && !string.IsNullOrEmpty(PhotonNetwork.NickName))
+                nameText.text = PhotonNetwork.NickName;
+            else
+                nameText.text = "나";
+
+            nameText.color = Color.yellow;
+        }
+        else
+        {
+            nameText.text = currentNpc.npcName;
+            nameText.color = Color.white;
+        }
+
         sentenceText.text = currentLine.sentence;
         if (currentLine.choices.Length > 0) { ShowChoices(currentLine.choices); }
         else { StartCoroutine(WaitForSpaceBar()); }
     }
 
-    // --- 👇 [수정] ShowChoices가 OnChoiceSelected에 int가 아닌 Choice를 넘기도록 변경 ---
     private void ShowChoices(Choice[] choices)
     {
         choiceLayout.SetActive(true);
@@ -163,7 +177,6 @@ public class DialogueManager : MonoBehaviour
             GameObject buttonGO = Instantiate(choiceButtonPrefab, choiceLayout.transform);
             buttonGO.GetComponentInChildren<TextMeshProUGUI>().text = choice.choiceText;
 
-            // [중요] choice 변수를 람다 표현식에서 올바르게 캡처
             Choice currentChoice = choice;
             buttonGO.GetComponent<Button>().onClick.AddListener(() => OnChoiceSelected(currentChoice));
         }

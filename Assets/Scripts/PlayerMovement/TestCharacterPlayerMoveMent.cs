@@ -13,6 +13,8 @@ public class TestCharacterPlayerMoveMent : MonoBehaviourPunCallbacks, IPunObserv
     public float walkSpeed = 5f;
     public float runSpeed = 10f;
 
+    public bool canMove = true;
+
     [Header("Camera Settings")]
     public Camera playerCamera;
     public float mouseSensitivity = 250f;
@@ -94,40 +96,50 @@ public class TestCharacterPlayerMoveMent : MonoBehaviourPunCallbacks, IPunObserv
     {
         if (!photonView.IsMine) return;
 
-        if (!(Input.GetKey(KeyCode.LeftAlt) || Input.GetKey(KeyCode.RightAlt) || isMouseRock))
+        if (canMove)
         {
-            float mouseX = Input.GetAxis("Mouse X") * mouseSensitivity * Time.deltaTime;
-            float mouseY = Input.GetAxis("Mouse Y") * mouseSensitivity * Time.deltaTime;
+            if (!(Input.GetKey(KeyCode.LeftAlt) || Input.GetKey(KeyCode.RightAlt) || isMouseRock))
+            {
+                float mouseX = Input.GetAxis("Mouse X") * mouseSensitivity * Time.deltaTime;
+                float mouseY = Input.GetAxis("Mouse Y") * mouseSensitivity * Time.deltaTime;
 
-            transform.Rotate(0, mouseX, 0);
+                transform.Rotate(0, mouseX, 0);
 
-            cameraRotationX -= mouseY;
-            cameraRotationX = Mathf.Clamp(cameraRotationX, -cameraUpDownLimit, cameraUpDownLimit);
-            playerCamera.transform.localRotation = Quaternion.Euler(cameraRotationX, 0, 0);
+                cameraRotationX -= mouseY;
+                cameraRotationX = Mathf.Clamp(cameraRotationX, -cameraUpDownLimit, cameraUpDownLimit);
+                playerCamera.transform.localRotation = Quaternion.Euler(cameraRotationX, 0, 0);
+            }
+
+            float h = Input.GetAxis("Horizontal");
+            float v = Input.GetAxis("Vertical");
+
+            Vector3 camForward = playerCamera.transform.forward;
+            Vector3 camRight = playerCamera.transform.right;
+            camForward.y = 0;
+            camRight.y = 0;
+            camForward.Normalize();
+            camRight.Normalize();
+
+            moveDirection = (camForward * v + camRight * h).normalized;
+            isMoving = moveDirection.magnitude > 0.1f;
+
+            bool currentIsRunning = (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift)) && isMoving;
+
+            animator.SetBool(animID_IsMoving, isMoving);
+            animator.SetBool(animID_IsRunning, currentIsRunning);
+
+            if (Input.GetMouseButtonDown(1))
+            {
+                Debug.Log("플레이어 공격");
+                photonView.RPC("RequestAttackRPC", RpcTarget.All);
+            }
         }
-
-        float h = Input.GetAxis("Horizontal");
-        float v = Input.GetAxis("Vertical");
-
-        Vector3 camForward = playerCamera.transform.forward;
-        Vector3 camRight = playerCamera.transform.right;
-        camForward.y = 0;
-        camRight.y = 0;
-        camForward.Normalize();
-        camRight.Normalize();
-
-        moveDirection = (camForward * v + camRight * h).normalized;
-        isMoving = moveDirection.magnitude > 0.1f;
-
-        bool currentIsRunning = (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift)) && isMoving;
-
-        animator.SetBool(animID_IsMoving, isMoving);
-        animator.SetBool(animID_IsRunning, currentIsRunning);
-
-        if (Input.GetMouseButtonDown(1))
+        else
         {
-            Debug.Log("플레이어 공격");
-            photonView.RPC("RequestAttackRPC", RpcTarget.All);
+            isMoving = false;
+            moveDirection = Vector3.zero;
+            animator.SetBool(animID_IsMoving, false);
+            animator.SetBool(animID_IsRunning, false);
         }
     }
 
@@ -300,7 +312,7 @@ public class TestCharacterPlayerMoveMent : MonoBehaviourPunCallbacks, IPunObserv
             currentIsFallingDown = false;
             isMouseRock = false;
             walkSpeed = 5;
-            runSpeed = 10; 
+            runSpeed = 10;
         }
     }
 }

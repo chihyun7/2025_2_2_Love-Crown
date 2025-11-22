@@ -5981,6 +5981,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   walkSpeed: 5
   runSpeed: 10
+  canMove: 1
   playerCamera: {fileID: 0}
   mouseSensitivity: 250
   cameraUpDownLimit: 80
