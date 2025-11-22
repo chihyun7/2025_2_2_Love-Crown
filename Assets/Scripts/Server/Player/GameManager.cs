@@ -368,7 +368,7 @@ public class GameManager : MonoBehaviourPunCallbacks
     }
 
     [PunRPC]
-    public void RpcRequestQuestComplete(int requesterActorID, string questID)
+    public void RpcRequestQuestComplete(int requesterActorID, string questID, int npcViewID)
     {
         if (!PhotonNetwork.IsMasterClient) return;
 
@@ -377,24 +377,52 @@ public class GameManager : MonoBehaviourPunCallbacks
 
         if (quest == null || playerInventory == null)
         {
-            Debug.LogError("퀘스트 완료 요청 실패: 퀘스트 또는 인벤토리 찾을 수 없음");
+            Debug.LogError("퀘스트 완료 요청 실패: 데이터 없음");
             return;
         }
 
-        // 보상 지급
         if (quest.rewardGold > 0)
         {
             playerInventory.pv.RPC("RpcChangeGold", RpcTarget.All, quest.rewardGold);
         }
+
         if (quest.rewardItem != null && quest.rewardItemQuantity > 0)
         {
             playerInventory.pv.RPC("RpcAddItem", RpcTarget.All, quest.rewardItem.itemID, quest.rewardItemQuantity);
         }
 
-        // 퀘스트 완료 처리 (PlayerQuestLog에 RPC 전송)
+        if (quest.rewardLikability > 0)
+        {
+            PhotonView npcView = PhotonView.Find(npcViewID);
+            if (npcView != null)
+            {
+                NPC targetNPC = npcView.GetComponent<NPC>();
+                if (targetNPC != null)
+                {
+                    targetNPC.likability += quest.rewardLikability;
+
+                    if (targetNPC.charmedByActorNumber == 0 && targetNPC.likability >= targetNPC.charmThreshold)
+                    {
+                        targetNPC.charmedByActorNumber = requesterActorID;
+
+                        if (!charmedCountPerPlayer.ContainsKey(requesterActorID))
+                            charmedCountPerPlayer[requesterActorID] = 0;
+                        charmedCountPerPlayer[requesterActorID]++;
+
+                        pv.RPC("RpcUpdateCharmedCount", RpcTarget.All, requesterActorID, charmedCountPerPlayer[requesterActorID]);
+
+                        string ownerName = PhotonNetwork.CurrentRoom.GetPlayer(requesterActorID)?.NickName ?? $"Player{requesterActorID}";
+                        npcView.RPC("RpcSetCharmOwner", RpcTarget.All, requesterActorID, ownerName);
+                    }
+
+                    npcView.RPC("RpcChangeLikability", RpcTarget.All, quest.rewardLikability);
+                }
+            }
+        }
+
         playerInventory.pv.RPC("RpcCompleteQuest", RpcTarget.All, questID);
 
-        Debug.Log($"[Server] Player {requesterActorID} 퀘스트 완료 및 보상 지급: {questID}");
+        Debug.Log($"[Server] Player {requesterActorID} 퀘스트 완료: {questID} (호감도 보상: {quest.rewardLikability})");
     }
 
 }

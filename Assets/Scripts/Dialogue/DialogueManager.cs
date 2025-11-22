@@ -78,21 +78,16 @@ public class DialogueManager : MonoBehaviour
         }
     }
 
-    // --- 👇 [수정] OnChoiceSelected가 Choice 객체를 통째로 받도록 변경 ---
     private void OnChoiceSelected(Choice choice)
     {
         if (currentNpc == null) return;
-        if (currentNpc.charmedByActorNumber != 0) return;
 
-        // 1. [항상 적용] 호감도 변화 적용
-        // (0이 아니면 호감도 변경 RPC 호출)
         if (choice.likabilityChange != 0)
         {
             currentNpc.IncreaseLikability(choice.likabilityChange);
             UpdateLikabilityUI();
         }
 
-        // 2. [특별 기능] 퀘스트 액션 처리
         switch (choice.action)
         {
             case Choice.ChoiceAction.AcceptQuest:
@@ -102,17 +97,29 @@ public class DialogueManager : MonoBehaviour
                 }
                 break;
 
+            case Choice.ChoiceAction.CompleteQuest:
+                if (currentQuestOffer != null)
+                {
+                    GameManager.Instance.pv.RPC("RpcRequestQuestComplete",
+                        RpcTarget.MasterClient,
+                        PhotonNetwork.LocalPlayer.ActorNumber,
+                        currentQuestOffer.questID,
+                        currentNpc.photonView.ViewID);
+                }
+                break;
+
+            case Choice.ChoiceAction.ExitDialogue:
+                EndDialogue();
+                return;
+
             case Choice.ChoiceAction.RejectQuest:
-                // 거절. 아무것도 하지 않고 대화만 넘김
                 break;
 
             case Choice.ChoiceAction.Normal:
             default:
-                // 일반 대화. 아무것도 하지 않음
                 break;
         }
 
-        // 3. 다음 대사로 진행
         DisplayNextLine();
     }
 

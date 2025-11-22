@@ -4,9 +4,9 @@
 public class Choice
 {
     public string choiceText;
-    public int likabilityChange; // 호감도 변화량 (0이면 변화 없음)
+    public int likabilityChange;
 
-    public enum ChoiceAction { Normal, AcceptQuest, RejectQuest }
+    public enum ChoiceAction { Normal, AcceptQuest, RejectQuest, CompleteQuest, ExitDialogue }
     public ChoiceAction action = ChoiceAction.Normal;
 }
 

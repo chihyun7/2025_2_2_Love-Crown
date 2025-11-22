@@ -13,15 +13,16 @@ MonoBehaviour:
   m_Name: "\uBD80\uC7A3\uC9D1 \uC544\uB4E4 \uD018"
   m_EditorClassIdentifier: 
   questID: Quest1
-  questName: "\uBC30\uB2EC\uC758 \uBBFC\uC871"
+  questName: "\uBD80\uC7A3\uC9D1 \uC544\uB4E4"
   description: "\uD018\uC2A4\uD2B8\uB97C \uC644\uB8CC\uD558\uC138\uC694."
   objective:
     type: 0
     targetItemID: Item_B
     targetItemQuantity: 1
-    targetNPCName: "\uBAA8\uBC94\uC0DD"
+    targetNPCName: "\uBD80\uC7A3\uC9D1 \uC544\uB4E4"
     targetLikability: 0
   rewardGold: 50
+  rewardLikability: 50
   rewardItem: {fileID: 0}
   rewardItemQuantity: 1
   startDialogue:

@@ -1,0 +1,101 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c65557a6670d2cf45867eae17f2f98a8, type: 3}
+  m_Name: "\uBAA8\uBC94\uC0DD \uD018"
+  m_EditorClassIdentifier: 
+  questID: Quest2
+  questName: "\uBAA8\uBC94\uC0DD"
+  description: "\uD018\uC2A4\uD2B8\uB97C \uC644\uB8CC\uD558\uC138\uC694."
+  objective:
+    type: 1
+    targetItemID: 
+    targetItemQuantity: 0
+    targetNPCName: "\uBAA8\uBC94\uC0DD"
+    targetLikability: 0
+  rewardGold: 50
+  rewardLikability: 50
+  rewardItem: {fileID: 0}
+  rewardItemQuantity: 0
+  startDialogue:
+    name: "\uBAA8\uBC94\uC0DD"
+    lines:
+    - sentence: "(\uD63C\uC790 \uC911\uC5BC\uAC70\uB9AC\uBA70 \uC11C\uC788\uB294
+        \uBAA8\uBC94\uC0DD\uC744 \uBC1C\uACAC\uD588\uB2E4.)\r"
+      choices: []
+    - sentence: "\uC5B4\uB5BB\uAC8C \uC774\uB7F0 \uAE30\uBCF8\uC801\uC778 \uC0C1\uC2DD\uB3C4
+        \uBAA8\uB974\uB294\uAC70\uC9C0\u2026? \uBA4D\uCCAD\uD55C \uAC83\uB4E4.\r"
+      choices:
+      - choiceText: "\uBB34\uC2A8 \uC0C1\uC2DD?"
+        likabilityChange: 0
+        action: 0
+    - sentence: "\uAE5C\uC9DD\uC544! \uB180\uB790\uC796\uC544.\n\uAC19\uC740 \uBC18
+        \uC560\uB4E4\uC774 6.25 \uC804\uC7C1\uC774 \uC5B8\uC81C \uC77C\uC5B4\uB0AC\uB294\uC9C0
+        \uBAA8\uB974\uB294 \uAC83 \uAC19\uC544\uC11C.\n\uBC14\uBCF4\uAC19\uC740 \uC560\uB4E4\uC774\uB791\uC740
+        \uB300\uD654\uD558\uAE30\uAC00 \uC2EB\uC5B4\uC838.\r"
+      choices:
+      - choiceText: "1950\uB144 \uC544\uB2C8\uC57C?"
+        likabilityChange: 0
+        action: 0
+    - sentence: "\uB9DE\uC544. \uC544\uB294 \uAC74 \uB2F9\uC5F0\uD55C\uAC70\uC9C0
+        \uC74C\uC74C.\n\uB108\uB294 \uADF8\uB798\uB3C4 \uC9C0\uC2DD\uC774 \uC5C6\uB294
+        \uAC83 \uAC19\uC9C0\uB294 \uC54A\uC73C\uB2C8 \uB0B4\uAC00 \uB0B4\uB294 \uBB38\uC81C\uB97C
+        \uD55C \uBC88 \uB9DE\uCDB0\uBD10!"
+      choices:
+      - choiceText: "\uC54C\uC558\uC5B4 \uD55C\uBC88 \uB0B4\uBD10."
+        likabilityChange: 0
+        action: 1
+  completionDialogue:
+    name: "\uBAA8\uBC94\uC0DD"
+    lines:
+    - sentence: "1. \uD504\uB791\uC2A4\uC758 \uC218\uB3C4\uB294 \uC5B4\uB514\uC77C\uAE4C?"
+      choices:
+      - choiceText: "\uB7F0\uB358"
+        likabilityChange: 0
+        action: 4
+      - choiceText: "\uBCA0\uB97C\uB9B0"
+        likabilityChange: 0
+        action: 4
+      - choiceText: "\uD30C\uB9AC"
+        likabilityChange: 0
+        action: 0
+      - choiceText: "\uB85C\uB9C8"
+        likabilityChange: 0
+        action: 4
+    - sentence: "2. \uAE08(Gold)\uC758 \uC6D0\uC18C \uAE30\uD638\uB294 \uBB34\uC5C7\uC77C\uAE4C?"
+      choices:
+      - choiceText: Ag
+        likabilityChange: 0
+        action: 4
+      - choiceText: Fe
+        likabilityChange: 0
+        action: 4
+      - choiceText: Cu
+        likabilityChange: 0
+        action: 4
+      - choiceText: Au
+        likabilityChange: 0
+        action: 0
+    - sentence: " 3. '\uBAA8\uB098\uB9AC\uC790'\uB97C \uADF8\uB9B0 \uD654\uAC00\uB294
+        \uB204\uAD6C\uC77C\uAE4C?"
+      choices:
+      - choiceText: "\uB808\uC624\uB098\uB974\uB3C4 \uB2E4\uBE48\uCE58"
+        likabilityChange: 0
+        action: 3
+      - choiceText: "\uBE48\uC13C\uD2B8 \uBC18 \uACE0\uD750"
+        likabilityChange: 0
+        action: 4
+      - choiceText: "\uD30C\uBE14\uB85C \uD53C\uCE74\uC18C"
+        likabilityChange: 0
+        action: 4
+      - choiceText: "\uD074\uB85C\uB4DC \uBAA8\uB124"
+        likabilityChange: 0
+        action: 4

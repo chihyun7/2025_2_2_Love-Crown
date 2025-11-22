@@ -1,36 +1,36 @@
-using UnityEngine;
+ï»¿using UnityEngine;
 
 [CreateAssetMenu(fileName = "New Quest", menuName = "Inventory/Quest")]
 public class QuestData : ScriptableObject
 {
-    public string questID; // Äù½ºÆ® °íÀ¯ ID (¿¹: "NPC1_Rose_Quest")
+    public string questID;
     public string questName;
     [TextArea(3, 10)]
     public string description;
 
-    [Header("Äù½ºÆ® ¸ñÇ¥")]
+    [Header("í€˜ìŠ¤íŠ¸ ëª©í‘œ")]
     public QuestObjective objective;
 
-    [Header("Äù½ºÆ® º¸»ó")]
+    [Header("í€˜ìŠ¤íŠ¸ ë³´ìƒ")]
     public int rewardGold = 0;
+    public int rewardLikability = 0;
     public ItemData rewardItem;
     public int rewardItemQuantity = 0;
 
-    [Header("Äù½ºÆ® ¼ö¶ô/¿Ï·á ´ëÈ­")]
-    public Dialogue startDialogue; // Äù½ºÆ®¸¦ Á¦¾ÈÇÏ´Â ´ëÈ­
-    public Dialogue completionDialogue; // Äù½ºÆ®¸¦ ¿Ï·áÇßÀ» ¶§ÀÇ ´ëÈ­
+    [Header("í€˜ìŠ¤íŠ¸ ìˆ˜ë½/ì™„ë£Œ ëŒ€í™”")]
+    public Dialogue startDialogue;
+    public Dialogue completionDialogue;
 }
 
-// Äù½ºÆ® ¸ñÇ¥¸¦ Á¤ÀÇÇÏ´Â º°µµÀÇ Å¬·¡½º
 [System.Serializable]
 public class QuestObjective
 {
     public enum ObjectiveType { Collect, Talk, ReachLikability }
 
     public ObjectiveType type;
-    public string targetItemID; // (Collect) ÇÊ¿äÇÑ ¾ÆÀÌÅÛ ID
-    public int targetItemQuantity; // (Collect) ÇÊ¿äÇÑ ¼ö·®
+    public string targetItemID;
+    public int targetItemQuantity;
 
-    public string targetNPCName; // (Talk, Likability) ´ë»ó NPC ÀÌ¸§
-    public int targetLikability; // (Likability) ¸ñÇ¥ È£°¨µµ
+    public string targetNPCName;
+    public int targetLikability;
 }
