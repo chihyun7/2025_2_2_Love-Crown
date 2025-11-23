@@ -10,11 +10,10 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: c65557a6670d2cf45867eae17f2f98a8, type: 3}
-  m_Name: "\uD559\uAD50 \uC778\uAE30\uB0A8 \uD018 ( \uAE30\uD68D\uC11C \uC218\uC815
-    \uC694\uB9DD)"
+  m_Name: "\uBC34\uB4DC\uBD80 \uC120\uBC30 \uD018 (\uC218\uC815 \uD544\uC694)"
   m_EditorClassIdentifier: 
-  questID: Quest5
-  questName: "\uD559\uAD50 \uC778\uAE30\uB0A8"
+  questID: Quest8
+  questName: "\uBC34\uB4DC\uBD80 \uC120\uBC30"
   description: "\uD018\uC2A4\uD2B8\uB97C \uC644\uB8CC\uD558\uC138\uC694."
   objective:
     type: 0
@@ -27,8 +26,8 @@ MonoBehaviour:
   rewardItem: {fileID: 0}
   rewardItemQuantity: 0
   startDialogue:
-    name: 
+    name: "\uBC34\uB4DC\uBD80 \uC120\uBC30"
     lines: []
   completionDialogue:
-    name: 
+    name: "\uBC34\uB4DC\uBD80 \uC120\uBC30"
     lines: []

@@ -78,7 +78,7 @@ public class UIManager : MonoBehaviour
                 progress = $"({questStatus.currentProgress} / {quest.objective.targetItemQuantity})";
             }
 
-            slotText.text = $"[진행중] {quest.questName} {progress}\n<size=12>{quest.description}</size>";
+            slotText.text = $"[진행중] {quest.questName} {progress}\n<size=50%>{quest.description}</size>";
         }
 
         foreach (string questID in questLog.completedQuestIDs)

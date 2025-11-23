@@ -190,7 +190,10 @@ public class DialogueManager : MonoBehaviour
 
     private IEnumerator WaitForSpaceBar()
     {
+        yield return null;
+
         yield return new WaitUntil(() => Input.GetKeyDown(KeyCode.Space));
+
         DisplayNextLine();
     }
 }

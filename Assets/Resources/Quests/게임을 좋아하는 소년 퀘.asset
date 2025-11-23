@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: c65557a6670d2cf45867eae17f2f98a8, type: 3}
-  m_Name: "\uAC8C\uC784\uC744 \uC88B\uC544\uD558\uB294 \uC18C\uB144"
+  m_Name: "\uAC8C\uC784\uC744 \uC88B\uC544\uD558\uB294 \uC18C\uB144 \uD018"
   m_EditorClassIdentifier: 
   questID: Quest6
   questName: "\uAC8C\uC784\uC744 \uC88B\uC544\uD558\uB294 \uC18C\uB144"

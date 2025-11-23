@@ -44,11 +44,11 @@ MonoBehaviour:
         \uD574\uC57C \uD798\uC774 \uB098\uC9C0~"
       choices: []
     - isPlayer: 0
-      sentence: "\u314E\u314E \uAD1C\uCC2E\uC544 \uC774\uB530\uAC00 \uAC04\uB2E8\uD558\uAC8C
-        \uBA39\uC73C\uBA74 \uB3FC."
+      sentence: "\uAD1C\uCC2E\uC544 \uC774\uB530\uAC00 \uAC04\uB2E8\uD558\uAC8C \uBA39\uC73C\uBA74
+        \uB3FC."
       choices: []
     - isPlayer: 1
-      sentence: " \u2026. \r\n(\uB9E4\uC810\uC5D0\uC11C \uBB34\uC5B8\uAC00 \uC0AC\uB2E4\uC8FC\uBA74
+      sentence: " \u2026. \n\r\n(\uB9E4\uC810\uC5D0\uC11C \uBB34\uC5B8\uAC00 \uC0AC\uB2E4\uC8FC\uBA74
         \uC88B\uC544\uD560 \uAC83 \uAC19\uB2E4.)\r"
       choices:
       - choiceText: "\uC608\uB97C \uB4E4\uBA74 \uC5D0\uB108\uC9C0\uBC14..?"

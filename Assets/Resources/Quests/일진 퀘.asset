@@ -1,0 +1,62 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c65557a6670d2cf45867eae17f2f98a8, type: 3}
+  m_Name: "\uC77C\uC9C4 \uD018"
+  m_EditorClassIdentifier: 
+  questID: Quest4
+  questName: "\uC77C\uC9C4"
+  description: "\uD018\uC2A4\uD2B8\uB97C \uC644\uB8CC\uD558\uC138\uC694."
+  objective:
+    type: 0
+    targetItemID: Item_I
+    targetItemQuantity: 1
+    targetNPCName: 
+    targetLikability: 0
+  rewardGold: 50
+  rewardLikability: 50
+  rewardItem: {fileID: 0}
+  rewardItemQuantity: 0
+  startDialogue:
+    name: "\uC77C\uC9C4"
+    lines:
+    - isPlayer: 1
+      sentence: "(\uC5BC\uAD74\uC5D0 \uC0C1\uCC98\uAC00 \uB09C \uCC44\uB85C \uC788\uB294
+        \uC77C\uC9C4 \uBC1C\uACAC\uD588\uB2E4.)\r"
+      choices: []
+    - isPlayer: 1
+      sentence: "\uB108 \uBB50\uC57C \uC5BC\uAD74\uC5D0 \uC0C1\uCC98\uB0AC\uB294\uB370?"
+      choices: []
+    - isPlayer: 0
+      sentence: "\uC544\uBB34\uAC83\uB3C4 \uC544\uB2C8\uC57C \uC2E0\uACBD \uC548\uC368\uB3C4
+        \uB3FC."
+      choices: []
+    - isPlayer: 1
+      sentence: "\uC544\uBB34\uAC83\uB3C4 \uC544\uB2C8\uAE34, \uD53C \uB098\uC796\uC544. "
+      choices: []
+    - isPlayer: 0
+      sentence: "\uAD1C\uCC2E\uB2E4\uB2C8\uAE4C."
+      choices: []
+    - isPlayer: 0
+      sentence: "\uC870\uAE08\uB9CC \uAE30\uB2E4\uB824\uBD10"
+      choices:
+      - choiceText: "(\uBC18\uCC3D\uACE0\uB77C\uB3C4  \uBD99\uC5EC\uC8FC\uC790.)"
+        likabilityChange: 0
+        action: 1
+  completionDialogue:
+    name: "\uC77C\uC9C4"
+    lines:
+    - isPlayer: 1
+      sentence: "\uAC00\uB9CC\uD788 \uC788\uC5B4\uBD10. \uBC18\uCC3D\uACE0 \uBD99\uC5EC\uC904\uAC8C. "
+      choices: []
+    - isPlayer: 0
+      sentence: "\u2026.."
+      choices: []

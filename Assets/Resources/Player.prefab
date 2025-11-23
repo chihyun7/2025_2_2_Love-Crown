@@ -6000,7 +6000,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   pv: {fileID: 0}
-  gold: 100
+  gold: 0
 --- !u!95 &3161320380100216681
 Animator:
   serializedVersion: 5
