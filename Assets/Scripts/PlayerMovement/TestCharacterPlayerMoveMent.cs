@@ -201,8 +201,9 @@ public class TestCharacterPlayerMoveMent : MonoBehaviourPunCallbacks, IPunObserv
 
         if (other.CompareTag("PlayerAttact") && photonView.IsMine)
         {
-            StartCoroutine(PlayerAttact());
-            Debug.Log("15초동안 플레이어 정지");
+            photonView.RPC("RPCPlayerAttack", RpcTarget.All);
+           
+            Debug.Log("20초동안 플레이어 정지");
         }
 
         if (other.CompareTag("FullingDownObject") && photonView.IsMine)
@@ -226,6 +227,18 @@ public class TestCharacterPlayerMoveMent : MonoBehaviourPunCallbacks, IPunObserv
         }
     }
 
+    [PunRPC]
+    public void RPCPlayerAttack()
+    {
+        StartCoroutine(PlayerAttact());
+        Debug.Log("동기화 진행");
+        if (photonView.IsMine)
+        {
+            transform.rotation = Quaternion.Euler(-90, 0, 0);
+            playerCamera.transform.localRotation = Quaternion.Euler(-90, 0, 0);
+        }
+    }
+
 
     IEnumerator DownPlayerSpeed()
     {
@@ -241,7 +254,17 @@ public class TestCharacterPlayerMoveMent : MonoBehaviourPunCallbacks, IPunObserv
         Debug.Log("코루틴 진입");
         walkSpeed = 0f;
         runSpeed = 0f;
-        yield return new WaitForSeconds(15f);
+        animator.SetBool("IsFallingDown", true);
+        yield return new WaitForSeconds(2f);
+        animator.SetBool("IsFallingDown", false);
+
+        if (photonView.IsMine)
+        {
+            transform.rotation = Quaternion.Euler(0, 0, 0);
+            playerCamera.transform.localRotation = Quaternion.Euler(cameraRotationX, 0, 0);
+        }
+        currentIsFallingDown = false;
+        isMouseRock = false;
         walkSpeed = 5f;
         runSpeed = 10f;
     }
