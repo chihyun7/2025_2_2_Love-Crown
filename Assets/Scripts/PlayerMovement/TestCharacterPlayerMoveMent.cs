@@ -222,8 +222,9 @@ public class TestCharacterPlayerMoveMent : MonoBehaviourPunCallbacks, IPunObserv
         Debug.Log("동기화 진행");
         if (photonView.IsMine)
         {
+            isMouseRock = true;
             transform.rotation = Quaternion.Euler(-90, 0, 0);
-            playerCamera.transform.localRotation = Quaternion.Euler(-90, 0, 0);
+           playerCamera.transform.localRotation = Quaternion.Euler(-90, 0, 0);
         }
     }
 
@@ -234,6 +235,7 @@ public class TestCharacterPlayerMoveMent : MonoBehaviourPunCallbacks, IPunObserv
         Debug.Log("동기화 진행");
         if (photonView.IsMine)
         {
+            isMouseRock = true;
             transform.rotation = Quaternion.Euler(-90, 0, 0);
             playerCamera.transform.localRotation = Quaternion.Euler(-90, 0, 0);
         }
