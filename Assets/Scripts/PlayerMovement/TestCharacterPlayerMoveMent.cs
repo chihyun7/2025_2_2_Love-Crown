@@ -39,16 +39,9 @@ public class TestCharacterPlayerMoveMent : MonoBehaviourPunCallbacks, IPunObserv
     private int animID_IsRunning;
     private bool currentIsFallingDown = false;
     private Vector3 moveDirection;
-    private CapsuleCollider capsuleCollider;
-    private float originalYPosition;
-    private float characteroriginalYPosition;
-    private float cameraoriginalYPosition;
-    private float originalCameraRotationX;
-
 
     private void Start()
     {
-        capsuleCollider = GetComponent<CapsuleCollider>();
 
         if (playerCamera == null)
         {
@@ -228,21 +221,8 @@ public class TestCharacterPlayerMoveMent : MonoBehaviourPunCallbacks, IPunObserv
         Debug.Log("동기화 진행");
         if (photonView.IsMine)
         {
-            originalYPosition = transform.position.y;
-            originalCameraRotationX = cameraRotationX;
-
-            if (CharacterObject != null)
-                characteroriginalYPosition = CharacterObject.transform.localPosition.y;
-
-            if (playerCamera != null)
-                cameraoriginalYPosition = playerCamera.transform.localPosition.y;
-
-            isMouseRock = true;
-            capsuleCollider.height = 0.5f;
-            capsuleCollider.center = new Vector3(0, 0.25f, 0);
-
-            if (playerCamera != null)
-                playerCamera.transform.localRotation = Quaternion.Euler(-90, 0, 0);
+            transform.rotation = Quaternion.Euler(-90, 0, 0);
+            playerCamera.transform.localRotation = Quaternion.Euler(-90, 0, 0);
         }
     }
 
@@ -279,35 +259,14 @@ public class TestCharacterPlayerMoveMent : MonoBehaviourPunCallbacks, IPunObserv
         runSpeed = 0f;
 
         animator.SetBool("IsFallingDown", true);
-        yield return new WaitForSeconds(1.5f);
+        yield return new WaitForSeconds(2f);
         animator.SetBool("IsFallingDown", false);
 
         if (photonView.IsMine)
         {
-            capsuleCollider.height = 1.8f;
-            capsuleCollider.center = new Vector3(0, 0.9f, 0);
-
-            transform.position = new Vector3(transform.position.x, originalYPosition, transform.position.z);
-
-            if (playerCamera != null)
-            {
-                playerCamera.transform.localPosition = new Vector3(
-                    playerCamera.transform.localPosition.x,
-                    cameraoriginalYPosition,
-                    playerCamera.transform.localPosition.z);
-
-                cameraRotationX = originalCameraRotationX;
-                playerCamera.transform.localRotation = Quaternion.Euler(cameraRotationX, 0, 0);
-            }
-
-
-            if (CharacterObject != null)
-            {
-                CharacterObject.transform.localPosition = new Vector3(
-                    CharacterObject.transform.localPosition.x,
-                    characteroriginalYPosition,
-                    CharacterObject.transform.localPosition.z);
-            }
+            transform.rotation = Quaternion.Euler(0, 0, 0);
+            playerCamera.transform.localRotation = Quaternion.Euler(cameraRotationX, 0, 0);
+        }
 
             currentIsFallingDown = false;
             isMouseRock = false;
@@ -315,4 +274,3 @@ public class TestCharacterPlayerMoveMent : MonoBehaviourPunCallbacks, IPunObserv
             runSpeed = 10;
         }
     }
-}
