@@ -10,9 +10,9 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 5336605b4a698b842a611537046a1246, type: 3}
-  m_Name: Item_10
+  m_Name: blockItem_02
   m_EditorClassIdentifier: 
-  itemID: Item_J
-  itemName: "\uAF2C\uB9AC\uBE57"
-  icon: {fileID: 21300000, guid: 0945cab2ab79d374785a94538094ed22, type: 3}
+  itemID: Item_L
+  itemName: "\uC18C\uD654\uAE30"
+  icon: {fileID: 21300000, guid: cd099ff0f676572418c4a5525ce04b4f, type: 3}
   price: 0

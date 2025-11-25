@@ -150,6 +150,12 @@ MonoBehaviour:
   - Item_F
   - Item_G
   - Item_H
+  - Item_I
+  - Item_J
+  - Item_K
+  - Item_L
+  - Item_M
+  - Item_N
   respawnDelay: 30
   closedVisual: {fileID: 0}
   openedVisual: {fileID: 0}
