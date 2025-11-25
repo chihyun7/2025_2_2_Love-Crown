@@ -150,55 +150,60 @@ public class GameManager : MonoBehaviourPunCallbacks
         chest.StartRespawnOnMaster();
     }
 
-    // 상자의 rewardItemIDs 리스트에서 랜덤으로 1개 선택
+    // 상자의 rewardItemIDs 리스트에서 확률 기반으로 1개 선택
     private string GetRandomRewardFromChest(GiftChest chest)
     {
-        // 일반 아이템 8개 → 각각 10% 확률
-        // 총 80% 확률에서만 아이템 지급
-        // (나머지 20% 는 지금은 "아이템 없음")
-
         if (chest.rewardItemIDs == null || chest.rewardItemIDs.Count == 0)
             return null;
 
-        float roll = Random.Range(0f, 1f);  // 0 ~ 1 사이 확률
+        // ★ 전제: rewardItemIDs
+        //  - 앞 10개: 일반 아이템
+        //  - 그 다음 4개: 방해 아이템
+        int normalCount = Mathf.Min(10, chest.rewardItemIDs.Count);
+        int trapCount = Mathf.Max(0, chest.rewardItemIDs.Count - normalCount); // 최대 4개 예상
 
-        if (roll > 0.80f)
+        // 방해 아이템이 아직 안 들어가 있고, 일반 아이템만 있을 때는
+        // 예전처럼 80%만 아이템, 20%는 없음 처리
+        if (trapCount == 0)
         {
-            // 20% 확률 → 아무것도 안 나옴
-            Debug.Log("[Chest] 이번에는 아이템 없음 (확률 20%)");
-            return null;
+            float roll = Random.Range(0f, 1f);
+
+            if (roll > 0.80f)
+            {
+                Debug.Log("[Chest] 이번에는 아이템 없음 (확률 20%)");
+                return null;
+            }
+
+            int index = Random.Range(0, normalCount);
+            string chosen = chest.rewardItemIDs[index];
+            Debug.Log($"[Chest] 일반 아이템 지급 (방해아이템 미설정): {chosen}");
+            return chosen;
         }
 
-        // ★ 여기 오면 80% 확률 구역
-        // 일반 아이템 8개가 각각 10%
-        int index = Random.Range(0, chest.rewardItemIDs.Count);
-        string chosen = chest.rewardItemIDs[index];
+        // ★ 방해 아이템까지 다 들어간 경우
+        //  - 일반 아이템: 10개 × 8% = 80%
+        //  - 방해 아이템: 최대 4개 × 5% = 20%
+        float r = Random.Range(0f, 100f);   // 0 ~ 100
 
-        Debug.Log($"[Chest] 일반 아이템 지급: {chosen}");
-        return chosen;
+        if (r < normalCount * 8f)
+        {
+            // 0 ~ 80 구간 → 일반 아이템
+            int idx = Random.Range(0, normalCount);  // 0 ~ 9
+            string chosen = chest.rewardItemIDs[idx];
+            Debug.Log($"[Chest] 일반 아이템 지급: {chosen} (roll={r})");
+            return chosen;
+        }
+        else
+        {
+            // 80 ~ 100 구간 → 방해 아이템 (각 5%로 총 20%)
+            int trapIndexBase = normalCount;         // 리스트에서 방해 아이템 시작 위치
+            int idx = Random.Range(0, trapCount);    // 0 ~ 3
+            string chosen = chest.rewardItemIDs[trapIndexBase + idx];
+            Debug.Log($"[Chest] 방해 아이템 지급: {chosen} (roll={r})");
+            return chosen;
+        }
     }
 
-    // --- 상점 ---
-    [PunRPC]
-    public void RpcRequestBuyItem(string itemID, Player requesterPlayer)
-    {
-        if (!PhotonNetwork.IsMasterClient) return;
-
-        ItemData itemData = GetItemData(itemID);
-        if (itemData == null)
-        {
-            Debug.LogWarning($"[Server] 구매 요청된 ItemID: {itemID} 를 찾을 수 없음.");
-            return;
-        }
-
-        int requesterActorID = requesterPlayer.ActorNumber;
-        Inventory playerInventory = FindPlayerInventory(requesterActorID);
-
-        if (playerInventory != null && playerInventory.CanAfford(itemData.price))
-        {
-            playerInventory.pv.RPC("RpcExecuteBuy", RpcTarget.All, itemID, itemData.price);
-        }
-    }
 
     // --- 호감도/귀속 ---
     [PunRPC]
