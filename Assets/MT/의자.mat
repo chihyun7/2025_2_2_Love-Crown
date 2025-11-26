@@ -619,7 +619,7 @@ Material:
     - _ShadowMaskType: 0
     - _ShadowNormalStrength: 1
     - _ShadowPostAO: 0
-    - _ShadowReceive: 0
+    - _ShadowReceive: 1
     - _ShadowStrength: 1
     - _ShadowStrengthMaskLOD: 0
     - _ShiftBackfaceUV: 0
@@ -687,7 +687,7 @@ Material:
     - _UseReflection: 0
     - _UseRim: 0
     - _UseRimShade: 0
-    - _UseShadow: 0
+    - _UseShadow: 1
     - _VertexLightStrength: 0
     - _WorkflowMode: 1
     - _ZClip: 1
