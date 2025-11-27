@@ -27,10 +27,6 @@ public class UIManager : MonoBehaviour
     public Transform questLogContent; // 퀘스트 로그의 Content 오브젝트 연결
     public GameObject questSlotPrefab; // 퀘스트 슬롯 프리팹
 
-    [Header("아이탬 사용")]
-    public Slider UseItem01;
-    public Slider UseItem02;
-
     private Inventory localInventory;
 
     void Awake()
@@ -48,7 +44,6 @@ public class UIManager : MonoBehaviour
     void Start()
     {
         FindLocalPlayerInventory();
-
     }
 
     public void ToggleQuestLogPanel()

@@ -10,8 +10,8 @@ using Unity.Mathematics;
 public class TestCharacterPlayerMoveMent : MonoBehaviourPunCallbacks, IPunObservable
 {
     [Header("Movement Settings")]
-    public float walkSpeed = 3f;
-    public float runSpeed = 6f;
+    public float walkSpeed = 5f;
+    public float runSpeed = 10f;
 
     public bool canMove = true;
 
@@ -39,7 +39,6 @@ public class TestCharacterPlayerMoveMent : MonoBehaviourPunCallbacks, IPunObserv
     private int animID_IsRunning;
     private bool currentIsFallingDown = false;
     private Vector3 moveDirection;
-    private bool isUseItem02;
 
     private void Start()
     {
@@ -225,6 +224,7 @@ public class TestCharacterPlayerMoveMent : MonoBehaviourPunCallbacks, IPunObserv
         {
             isMouseRock = true;
             transform.rotation = Quaternion.Euler(-90, 0, 0);
+           playerCamera.transform.localRotation = Quaternion.Euler(-90, 0, 0);
         }
     }
 
@@ -237,17 +237,18 @@ public class TestCharacterPlayerMoveMent : MonoBehaviourPunCallbacks, IPunObserv
         {
             isMouseRock = true;
             transform.rotation = Quaternion.Euler(-90, 0, 0);
+            playerCamera.transform.localRotation = Quaternion.Euler(-90, 0, 0);
         }
     }
 
 
     IEnumerator DownPlayerSpeed()
     {
-        walkSpeed = 1f;
-        runSpeed = 2f;
+        walkSpeed = 2f;
+        runSpeed = 3f;
         yield return new WaitForSeconds(15f);
-        walkSpeed = 3f;
-        runSpeed = 6f;
+        walkSpeed = 5f;
+        runSpeed = 10f;
     }
 
     IEnumerator PlayerAttact()
@@ -294,7 +295,7 @@ public class TestCharacterPlayerMoveMent : MonoBehaviourPunCallbacks, IPunObserv
 
             currentIsFallingDown = false;
             isMouseRock = false;
-            walkSpeed = 3;
-            runSpeed = 6;
+            walkSpeed = 5;
+            runSpeed = 10;
         }
     }
