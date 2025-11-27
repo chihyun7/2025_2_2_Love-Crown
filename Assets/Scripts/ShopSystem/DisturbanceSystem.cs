@@ -5,11 +5,12 @@ using Photon.Pun;
 using Photon.Realtime;
 using System.Linq;
 using UnityEngine.UI;
+using Photon.Pun.Demo.Procedural;
 
 public class DisturbanceSystem : MonoBehaviourPunCallbacks
 {
     public static DisturbanceSystem Instance;
-
+    public UIManager UIManager;
     public GameObject player1EyePatch;
     public GameObject player2EyePatch;
 
@@ -17,13 +18,13 @@ public class DisturbanceSystem : MonoBehaviourPunCallbacks
 
     private readonly float EFFECT_DURATION = 5f;
     private readonly float COOLDOWN_DURATION = 35f;
+    private bool isUesItem01;
 
     private PhotonView pv;
 
     private class PlayerState
     {
         public bool IsUseItem = false;
-        public int UseCount = 3;
     }
 
 
@@ -49,6 +50,17 @@ public class DisturbanceSystem : MonoBehaviourPunCallbacks
 
         if (player1EyePatch != null) player1EyePatch.SetActive(false);
         if (player2EyePatch != null) player2EyePatch.SetActive(false);
+
+        if(!UIManager)
+        {
+            UIManager = GetComponent<UIManager>();
+        }
+
+        if (UIManager.UseItem01 != null)
+        {
+            UIManager.UseItem01.maxValue = EFFECT_DURATION;
+            UIManager.UseItem01.value = 0f;
+        }
     }
 
     private void Update()
@@ -70,37 +82,28 @@ public class DisturbanceSystem : MonoBehaviourPunCallbacks
         }
 
         PlayerState state = playerStates[localPlayer.ActorNumber];
-
-        if (state.UseCount <= 0)
-        {
-            Debug.Log("이미 방해 기회를 다 소진했습니다.");
-            return;
-        }
+        
 
         if (!state.IsUseItem)
         {
             Player[] playerlist = PhotonNetwork.PlayerList;
 
-            if (playerlist.Length >= 2)
-            {
+  
                 Player targetPlayer = playerlist.FirstOrDefault(p => p.ActorNumber != localPlayer.ActorNumber);
 
                 if (targetPlayer != null)
                 {
                     pv.RPC("RpcActivateEffectForTarget", targetPlayer, localPlayer.ActorNumber);
 
-                    state.UseCount--;
 
                     StartCoroutine(NextUseTime(localPlayer.ActorNumber));
+                    StartCoroutine(IsUseItem01());
                     state.IsUseItem = true;
-
-                    Debug.Log($"안대 사용! 남은 횟수: {state.UseCount}");
                 }
                 else
                 {
                     Debug.LogWarning("타겟 플레이어 (나 외의 다른 플레이어)를 찾을 수 없습니다.");
                 }
-            }
         }
         else
         {
@@ -144,9 +147,33 @@ public class DisturbanceSystem : MonoBehaviourPunCallbacks
         if (playerStates.ContainsKey(actorNumber))
         {
             playerStates[actorNumber].IsUseItem = false;
+            isUesItem01 = false;
             Debug.Log($"쿨타임 종료. 플레이어 {actorNumber} 다시 사용할 수 있습니다.");
         }
     }
+
+    private IEnumerator IsUseItem01()
+    {
+        if(photonView.IsMine && isUesItem01)
+        {
+            float timer = EFFECT_DURATION;
+            UIManager.UseItem01.value = timer;
+
+            while(timer > 0f)
+            {
+                timer -= Time.deltaTime;
+
+                UIManager.UseItem01.value = timer;
+
+                yield return null;
+            }
+        }
+    }
+
+    //private bool IsUseItem02()
+    //{
+
+    //}
 
     public override void OnPlayerEnteredRoom(Player newPlayer)
     {
