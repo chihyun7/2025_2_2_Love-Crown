@@ -24,6 +24,8 @@ public class TestCharacterPlayerMoveMent : MonoBehaviourPunCallbacks, IPunObserv
     public GameObject CharacterObject;
     public GameObject player_AttackObject;
 
+    public UIManager uiManager;
+
     private float cameraRotationX = 0f;
 
     private Vector3 networkPosition;
@@ -83,6 +85,9 @@ public class TestCharacterPlayerMoveMent : MonoBehaviourPunCallbacks, IPunObserv
 
         animID_IsMoving = Animator.StringToHash("IsMoving");
         animID_IsRunning = Animator.StringToHash("IsRunning");
+
+        if (!uiManager)
+            uiManager = GetComponent<UIManager>();
     }
 
     private void Update()
@@ -125,6 +130,7 @@ public class TestCharacterPlayerMoveMent : MonoBehaviourPunCallbacks, IPunObserv
             {
                 Debug.Log("플레이어 공격");
                 photonView.RPC("RequestAttackRPC", RpcTarget.All);
+                uiManager.isPlayerAttact = true;
             }
         }
         else
@@ -224,7 +230,6 @@ public class TestCharacterPlayerMoveMent : MonoBehaviourPunCallbacks, IPunObserv
         {
             isMouseRock = true;
             transform.rotation = Quaternion.Euler(-90, 0, 0);
-           playerCamera.transform.localRotation = Quaternion.Euler(-90, 0, 0);
         }
     }
 
@@ -237,7 +242,6 @@ public class TestCharacterPlayerMoveMent : MonoBehaviourPunCallbacks, IPunObserv
         {
             isMouseRock = true;
             transform.rotation = Quaternion.Euler(-90, 0, 0);
-            playerCamera.transform.localRotation = Quaternion.Euler(-90, 0, 0);
         }
     }
 
@@ -286,6 +290,7 @@ public class TestCharacterPlayerMoveMent : MonoBehaviourPunCallbacks, IPunObserv
         animator.SetBool("IsFallingDown", true);
         yield return new WaitForSeconds(2f);
         animator.SetBool("IsFallingDown", false);
+        uiManager.isPlayerAttact = false;
 
         if (photonView.IsMine)
         {

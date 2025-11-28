@@ -60,7 +60,7 @@ public class DisturbanceSystem : MonoBehaviourPunCallbacks
     {
         if (PhotonNetwork.InRoom && pv != null)
         {
-            if (Input.GetKeyDown(KeyCode.F))
+            if (Input.GetKeyDown(KeyCode.Alpha1))
             {
                 UseEyePatch_InputCheck(PhotonNetwork.LocalPlayer);
             }
