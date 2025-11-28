@@ -261,6 +261,7 @@ public class TestCharacterPlayerMoveMent : MonoBehaviourPunCallbacks, IPunObserv
         player_AttackObject.gameObject.SetActive(true);
         yield return new WaitForSeconds(1.5f);
         player_AttackObject.gameObject.SetActive(false);
+        StartCoroutine(PlayerAttackCollTime());
     }
 
     IEnumerator PlayerAttackCollTime()
