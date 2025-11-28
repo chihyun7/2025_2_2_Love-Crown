@@ -41,7 +41,7 @@ public class UIManager : MonoBehaviour
     public bool isPlayerSkilil04;
 
     private Inventory localInventory;
-    private PhotonView pv;
+    public PhotonView pv;
     void Awake()
     {
         if (instance == null)
