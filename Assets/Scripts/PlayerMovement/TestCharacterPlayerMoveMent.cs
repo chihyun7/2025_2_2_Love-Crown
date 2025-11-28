@@ -41,6 +41,7 @@ public class TestCharacterPlayerMoveMent : MonoBehaviourPunCallbacks, IPunObserv
     private int animID_IsRunning;
     private bool currentIsFallingDown = false;
     private Vector3 moveDirection;
+    private bool isNotPlayrAttact;
 
     private void Start()
     {
@@ -236,7 +237,7 @@ public class TestCharacterPlayerMoveMent : MonoBehaviourPunCallbacks, IPunObserv
     [PunRPC]
     public void RPCPlayerAttack()
     {
-        StartCoroutine(PlayerAttact());
+        StartCoroutine(PlayerFullDown());
         Debug.Log("동기화 진행");
         if (photonView.IsMine)
         {
@@ -255,31 +256,19 @@ public class TestCharacterPlayerMoveMent : MonoBehaviourPunCallbacks, IPunObserv
         runSpeed = 10f;
     }
 
-    IEnumerator PlayerAttact()
-    {
-        Debug.Log("코루틴 진입");
-        walkSpeed = 0f;
-        runSpeed = 0f;
-        animator.SetBool("IsFallingDown", true);
-        yield return new WaitForSeconds(2f);
-        animator.SetBool("IsFallingDown", false);
-
-        if (photonView.IsMine)
-        {
-            transform.rotation = Quaternion.Euler(0, 0, 0);
-            playerCamera.transform.localRotation = Quaternion.Euler(cameraRotationX, 0, 0);
-        }
-        currentIsFallingDown = false;
-        isMouseRock = false;
-        walkSpeed = 5f;
-        runSpeed = 10f;
-    }
-
     IEnumerator PlayerAttackStart()
     {
         player_AttackObject.gameObject.SetActive(true);
-        yield return new WaitForSeconds(3f);
+        yield return new WaitForSeconds(1.5f);
         player_AttackObject.gameObject.SetActive(false);
+    }
+
+    IEnumerator PlayerAttackCollTime()
+    {
+        Debug.Log("콜 타임 시간 종료 까지 공격 못함...알아서 해^^");
+        yield return new WaitForSeconds(30f);
+        Debug.Log("콜 타임 종료");
+        isNotPlayrAttact = false;
     }
 
     IEnumerator PlayerFullDown()
