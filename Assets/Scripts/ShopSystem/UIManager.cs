@@ -103,7 +103,7 @@ public class UIManager : MonoBehaviour
             float time = playerskill01.maxValue;
             playerskill01.value = time;
 
-            Debug.Log($"현제 쿨타임: {time}");
+            Debug.Log($"현재 쿨타임: {time}");
             while (time > 0f)
             {
                 time--;

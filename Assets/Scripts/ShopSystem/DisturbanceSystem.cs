@@ -10,7 +10,7 @@ public class DisturbanceSystem : MonoBehaviourPunCallbacks
 {
     public static DisturbanceSystem Instance;
 
-    public UIManager uiManager;
+   // public UIManager uiManager;
     public GameObject player1EyePatch;
     public GameObject player2EyePatch;
 
@@ -49,8 +49,8 @@ public class DisturbanceSystem : MonoBehaviourPunCallbacks
         if (!player2EyePatch)
             player2EyePatch = GameObject.Find("UI_Player2_EyePatch");
 
-        if (!uiManager)
-            uiManager = GetComponent<UIManager>();
+        //if (!uiManager)
+        //    uiManager = GetComponent<UIManager>();
 
         if (player1EyePatch != null) player1EyePatch.SetActive(false);
         if (player2EyePatch != null) player2EyePatch.SetActive(false);
@@ -92,7 +92,7 @@ public class DisturbanceSystem : MonoBehaviourPunCallbacks
             if (targetPlayer != null)
             {
                 pv.RPC("RpcActivateEffectForTarget", targetPlayer, localPlayer.ActorNumber);
-                uiManager.isPlayerSkill01 = true;
+              //  uiManager.isPlayerSkill01 = true;
                 StartCoroutine(NextUseTime(localPlayer.ActorNumber));
                 state.IsUseItem = true;
 

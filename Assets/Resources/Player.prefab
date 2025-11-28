@@ -5988,6 +5988,7 @@ MonoBehaviour:
   CharacterObject: {fileID: 0}
   player_AttackObject: {fileID: 5524636489542329833}
   uiManager: {fileID: 0}
+  isNotPlayrAttact: 0
 --- !u!114 &7433059086367797155
 MonoBehaviour:
   m_ObjectHideFlags: 0
