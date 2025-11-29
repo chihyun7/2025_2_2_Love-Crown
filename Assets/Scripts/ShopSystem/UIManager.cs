@@ -9,7 +9,6 @@ using static UnityEngine.EventSystems.EventTrigger;
 public class UIManager : MonoBehaviour
 {
     public static UIManager instance;
-
     [Header("UI Elements")]
     public TextMeshProUGUI goldText;
     public GameObject shopPanel;
@@ -27,8 +26,22 @@ public class UIManager : MonoBehaviour
     public Transform questLogContent; // 퀘스트 로그의 Content 오브젝트 연결
     public GameObject questSlotPrefab; // 퀘스트 슬롯 프리팹
 
-    private Inventory localInventory;
+    [Header("Skill")]
+    public Slider playerskill01;
+    public Slider playerAttack;
+    public Slider playerskill03;
+    public Slider playerskIll04;
 
+    public DisturbanceSystem disturbanceSystem;
+    public TestCharacterPlayerMoveMent characterPlayerMoveMent;
+
+    public bool isPlayerSkill01;
+    public bool isPlayerAttact;
+    public bool isPlayerSkill03;
+    public bool isPlayerSkilil04;
+
+    private Inventory localInventory;
+    public PhotonView pv;
     void Awake()
     {
         if (instance == null)
@@ -43,7 +56,64 @@ public class UIManager : MonoBehaviour
 
     void Start()
     {
+        if (!disturbanceSystem)
+            disturbanceSystem = GetComponent<DisturbanceSystem>();
+        if (!characterPlayerMoveMent)
+            characterPlayerMoveMent = GetComponent<TestCharacterPlayerMoveMent>();
         FindLocalPlayerInventory();
+    }
+
+    private void Update()
+    {
+        if (!pv.IsMine) return; 
+        UsePlayerSkill01();
+        UsePlayerAttack();
+    }
+
+    private void UsePlayerSkill01()
+    {
+        
+        playerskill01.maxValue = disturbanceSystem.COOLDOWN_DURATION;
+        playerskill01.value = 0f;
+
+        if (!disturbanceSystem && isPlayerSkill01)
+        {
+            Debug.Log("스크립트 통신 성공 쿨타임 진행");
+            float time = playerskill01.maxValue;
+            playerskill01.value = time;
+
+            Debug.Log($"현제 쿨타임: {time}");
+            while (time > 0f)
+            {
+                time--;
+            }
+            if (time == 0f)
+            {
+                Debug.Log("쿨타임 종료");
+                isPlayerSkill01 = false;
+            }
+        }
+    }
+
+    private void UsePlayerAttack()
+    {
+        if (!characterPlayerMoveMent && isPlayerSkill01)
+        {
+            Debug.Log("스크립트 통신 성공 쿨타임 진행");
+            float time = playerskill01.maxValue;
+            playerskill01.value = time;
+
+            Debug.Log($"현제 쿨타임: {time}");
+            while (time > 0f)
+            {
+                time--;
+            }
+            if (time == 0f)
+            {
+                Debug.Log("쿨타임 종료");
+                isPlayerSkill01 = false;
+            }
+        }
     }
 
     public void ToggleQuestLogPanel()

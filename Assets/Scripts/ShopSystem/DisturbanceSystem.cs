@@ -10,13 +10,14 @@ public class DisturbanceSystem : MonoBehaviourPunCallbacks
 {
     public static DisturbanceSystem Instance;
 
+    public UIManager uiManager;
     public GameObject player1EyePatch;
     public GameObject player2EyePatch;
 
     private Dictionary<int, PlayerState> playerStates = new Dictionary<int, PlayerState>();
 
     private readonly float EFFECT_DURATION = 5f;
-    private readonly float COOLDOWN_DURATION = 35f;
+    public readonly float COOLDOWN_DURATION = 35f;
 
     private PhotonView pv;
 
@@ -40,12 +41,16 @@ public class DisturbanceSystem : MonoBehaviourPunCallbacks
         }
     }
 
-    private void Start() 
-    {   if(!player1EyePatch)
+    private void Start()
+    {
+        if (!player1EyePatch)
             player1EyePatch = GameObject.Find("UI_Player1_EyePatch");
 
-        if(!player2EyePatch)
+        if (!player2EyePatch)
             player2EyePatch = GameObject.Find("UI_Player2_EyePatch");
+
+        if (!uiManager)
+            uiManager = GetComponent<UIManager>();
 
         if (player1EyePatch != null) player1EyePatch.SetActive(false);
         if (player2EyePatch != null) player2EyePatch.SetActive(false);
@@ -55,7 +60,7 @@ public class DisturbanceSystem : MonoBehaviourPunCallbacks
     {
         if (PhotonNetwork.InRoom && pv != null)
         {
-            if (Input.GetKeyDown(KeyCode.F))
+            if (Input.GetKeyDown(KeyCode.Alpha1))
             {
                 UseEyePatch_InputCheck(PhotonNetwork.LocalPlayer);
             }
@@ -81,26 +86,23 @@ public class DisturbanceSystem : MonoBehaviourPunCallbacks
         {
             Player[] playerlist = PhotonNetwork.PlayerList;
 
-            if (playerlist.Length >= 2)
+
+            Player targetPlayer = playerlist.FirstOrDefault(p => p.ActorNumber != localPlayer.ActorNumber);
+
+            if (targetPlayer != null)
             {
-                Player targetPlayer = playerlist.FirstOrDefault(p => p.ActorNumber != localPlayer.ActorNumber);
+                pv.RPC("RpcActivateEffectForTarget", targetPlayer, localPlayer.ActorNumber);
+                uiManager.isPlayerSkill01 = true;
+                StartCoroutine(NextUseTime(localPlayer.ActorNumber));
+                state.IsUseItem = true;
 
-                if (targetPlayer != null)
-                {
-                    pv.RPC("RpcActivateEffectForTarget", targetPlayer, localPlayer.ActorNumber);
-
-                    state.UseCount--;
-
-                    StartCoroutine(NextUseTime(localPlayer.ActorNumber));
-                    state.IsUseItem = true;
-
-                    Debug.Log($"안대 사용! 남은 횟수: {state.UseCount}");
-                }
-                else
-                {
-                    Debug.LogWarning("타겟 플레이어 (나 외의 다른 플레이어)를 찾을 수 없습니다.");
-                }
+                Debug.Log($"안대 사용! 남은 횟수: {state.UseCount}");
             }
+            else
+            {
+                Debug.LogWarning("타겟 플레이어 (나 외의 다른 플레이어)를 찾을 수 없습니다.");
+            }
+
         }
         else
         {
