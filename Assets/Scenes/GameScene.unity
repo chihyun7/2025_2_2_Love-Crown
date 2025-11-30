@@ -236,7 +236,7 @@ MonoBehaviour:
     m_PressedTrigger: Pressed
     m_SelectedTrigger: Selected
     m_DisabledTrigger: Disabled
-  m_Interactable: 1
+  m_Interactable: 0
   m_TargetGraphic: {fileID: 0}
   m_FillRect: {fileID: 736060852}
   m_HandleRect: {fileID: 0}
@@ -940,6 +940,7 @@ GameObject:
   m_Component:
   - component: {fileID: 134704495}
   - component: {fileID: 134704494}
+  - component: {fileID: 134704496}
   m_Layer: 0
   m_Name: UIManager
   m_TagString: Untagged
@@ -974,12 +975,13 @@ MonoBehaviour:
   questLogContent: {fileID: 1475554779}
   questSlotPrefab: {fileID: 1595645894782360036, guid: 26c5a57c5fd7cd34fadd85d8cb057610,
     type: 3}
-  playerskill01: {fileID: 0}
-  playerAttack: {fileID: 0}
-  playerskill03: {fileID: 0}
-  playerskIll04: {fileID: 0}
-  disturbanceSystem: {fileID: 0}
+  playerskill01: {fileID: 19891069}
+  playerAttack: {fileID: 658432676}
+  playerskill03: {fileID: 1428395200}
+  playerskIll04: {fileID: 618755265}
+  disturbanceSystem: {fileID: 770509696}
   characterPlayerMoveMent: {fileID: 0}
+  playerMove: {fileID: 0}
   isPlayerSkill01: 0
   isPlayerAttact: 0
   isPlayerSkill03: 0
@@ -1000,6 +1002,28 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &134704496
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 134704493}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: aa584fbee541324448dd18d8409c7a41, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  ObservedComponentsFoldoutOpen: 1
+  Group: 0
+  prefixField: -1
+  Synchronization: 3
+  OwnershipTransfer: 0
+  observableSearch: 2
+  ObservedComponents: []
+  sceneViewId: 1
+  InstantiationId: 0
+  isRuntimeInstantiated: 0
 --- !u!1001 &144548688
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -4587,7 +4611,7 @@ MonoBehaviour:
     m_PressedTrigger: Pressed
     m_SelectedTrigger: Selected
     m_DisabledTrigger: Disabled
-  m_Interactable: 1
+  m_Interactable: 0
   m_TargetGraphic: {fileID: 0}
   m_FillRect: {fileID: 1209648226}
   m_HandleRect: {fileID: 0}
@@ -5055,7 +5079,7 @@ MonoBehaviour:
     m_PressedTrigger: Pressed
     m_SelectedTrigger: Selected
     m_DisabledTrigger: Disabled
-  m_Interactable: 1
+  m_Interactable: 0
   m_TargetGraphic: {fileID: 0}
   m_FillRect: {fileID: 2050122915}
   m_HandleRect: {fileID: 0}
@@ -11171,7 +11195,7 @@ MonoBehaviour:
     m_PressedTrigger: Pressed
     m_SelectedTrigger: Selected
     m_DisabledTrigger: Disabled
-  m_Interactable: 1
+  m_Interactable: 0
   m_TargetGraphic: {fileID: 0}
   m_FillRect: {fileID: 1579434067}
   m_HandleRect: {fileID: 0}

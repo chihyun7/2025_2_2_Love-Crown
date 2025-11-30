@@ -76,11 +76,6 @@ public class DisturbanceSystem : MonoBehaviourPunCallbacks
 
         PlayerState state = playerStates[localPlayer.ActorNumber];
 
-        if (state.UseCount <= 0)
-        {
-            Debug.Log("이미 방해 기회를 다 소진했습니다.");
-            return;
-        }
 
         if (!state.IsUseItem)
         {
@@ -94,9 +89,7 @@ public class DisturbanceSystem : MonoBehaviourPunCallbacks
                 pv.RPC("RpcActivateEffectForTarget", targetPlayer, localPlayer.ActorNumber);
                 uiManager.isPlayerSkill01 = true;
                 StartCoroutine(NextUseTime(localPlayer.ActorNumber));
-                state.IsUseItem = true;
-
-                Debug.Log($"안대 사용! 남은 횟수: {state.UseCount}");
+                state.IsUseItem = true;         
             }
             else
             {

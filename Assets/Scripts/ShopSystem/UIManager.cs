@@ -1,5 +1,6 @@
 ﻿using Photon.Pun;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
@@ -22,9 +23,9 @@ public class UIManager : MonoBehaviour
     [Header("Layout & Prefabs")]
     public Transform shopContent;
     public Transform inventoryContent;
-    public GameObject itemSlotPrefab; // ItemSlot 스크립트가 붙어 있다고 가정
-    public Transform questLogContent; // 퀘스트 로그의 Content 오브젝트 연결
-    public GameObject questSlotPrefab; // 퀘스트 슬롯 프리팹
+    public GameObject itemSlotPrefab;
+    public Transform questLogContent;
+    public GameObject questSlotPrefab;
 
     [Header("Skill")]
     public Slider playerskill01;
@@ -34,6 +35,7 @@ public class UIManager : MonoBehaviour
 
     public DisturbanceSystem disturbanceSystem;
     public TestCharacterPlayerMoveMent characterPlayerMoveMent;
+    public PlayerMove playerMove;
 
     public bool isPlayerSkill01;
     public bool isPlayerAttact;
@@ -41,7 +43,9 @@ public class UIManager : MonoBehaviour
     public bool isPlayerSkilil04;
 
     private Inventory localInventory;
+    private GameObject localPlayerObject;
     public PhotonView pv;
+
     void Awake()
     {
         if (instance == null)
@@ -56,64 +60,69 @@ public class UIManager : MonoBehaviour
 
     void Start()
     {
-        if (!disturbanceSystem)
-            disturbanceSystem = GetComponent<DisturbanceSystem>();
-        if (!characterPlayerMoveMent)
-            characterPlayerMoveMent = GetComponent<TestCharacterPlayerMoveMent>();
-        FindLocalPlayerInventory();
+        FindLocalPlayer();
     }
 
     private void Update()
     {
-        if (!pv.IsMine) return; 
-        UsePlayerSkill01();
-        UsePlayerAttack();
+        if (pv == null || !pv.IsMine || localPlayerObject == null) return;
+
     }
 
-    private void UsePlayerSkill01()
+    public void StartSkill01Cooldown()
     {
-        
-        playerskill01.maxValue = disturbanceSystem.COOLDOWN_DURATION;
+        if (isPlayerSkill01) return;
+
+        isPlayerSkill01 = true;
+        StartCoroutine(Skill01CooldownCoroutine());
+    }
+
+    private IEnumerator Skill01CooldownCoroutine()
+    {
+        if (disturbanceSystem == null)
+        {
+            isPlayerSkill01 = false;
+            yield break;
+        }
+
+        float cooldownDuration = disturbanceSystem.COOLDOWN_DURATION;
+        float currentTime = cooldownDuration;
+
+        playerskill01.maxValue = cooldownDuration;
+
+        while (currentTime > 0f)
+        {
+            currentTime -= Time.deltaTime;
+            playerskill01.value = currentTime;
+            yield return null;
+        }
+
         playerskill01.value = 0f;
-
-        if (!disturbanceSystem && isPlayerSkill01)
-        {
-            Debug.Log("스크립트 통신 성공 쿨타임 진행");
-            float time = playerskill01.maxValue;
-            playerskill01.value = time;
-
-            Debug.Log($"현제 쿨타임: {time}");
-            while (time > 0f)
-            {
-                time--;
-            }
-            if (time == 0f)
-            {
-                Debug.Log("쿨타임 종료");
-                isPlayerSkill01 = false;
-            }
-        }
+        isPlayerSkill01 = false;
     }
 
-    private void UsePlayerAttack()
+    public void StartAttackCooldown(float duration)
     {
-        if (!characterPlayerMoveMent && isPlayerSkill01)
-        {
-            Debug.Log("스크립트 통신 성공 쿨타임 진행");
-            float time = playerskill01.maxValue;
-            playerskill01.value = time;
+        if (isPlayerAttact) return;
 
-            Debug.Log($"현제 쿨타임: {time}");
-            while (time > 0f)
-            {
-                time--;
-            }
-            if (time == 0f)
-            {
-                Debug.Log("쿨타임 종료");
-                isPlayerSkill01 = false;
-            }
+        isPlayerAttact = true;
+        StartCoroutine(AttackCooldownCoroutine(duration));
+    }
+
+    private IEnumerator AttackCooldownCoroutine(float duration)
+    {
+        float currentTime = duration;
+        playerAttack.maxValue = duration;
+
+        while (currentTime > 0f)
+        {
+            currentTime -= Time.deltaTime;
+            playerAttack.value = currentTime;
+            yield return null;
         }
+
+        playerAttack.value = 0f;
+        isPlayerAttact = false;
     }
 
     public void ToggleQuestLogPanel()
@@ -163,7 +172,7 @@ public class UIManager : MonoBehaviour
         }
     }
 
-    public void FindLocalPlayerInventory()
+    public void FindLocalPlayer()
     {
         Inventory[] inventories = FindObjectsOfType<Inventory>();
 
@@ -172,23 +181,27 @@ public class UIManager : MonoBehaviour
             if (inv.pv != null && inv.pv.IsMine)
             {
                 localInventory = inv;
-                Debug.Log("UIManager: 로컬 플레이어 인벤토리 찾음");
+                localPlayerObject = inv.gameObject;
+
+                characterPlayerMoveMent = localPlayerObject.GetComponent<TestCharacterPlayerMoveMent>();
+                disturbanceSystem = localPlayerObject.GetComponent<DisturbanceSystem>();
+                playerMove = localPlayerObject.GetComponent<PlayerMove>();
+
                 UpdateGoldText(localInventory.gold);
-                CancelInvoke("RetryFindLocalPlayerInventory");
+                CancelInvoke("RetryFindLocalPlayer");
                 return;
             }
         }
 
-        if (localInventory == null && !IsInvoking("RetryFindLocalPlayerInventory"))
+        if (localInventory == null && !IsInvoking("RetryFindLocalPlayer"))
         {
-            Debug.LogWarning("UIManager: 로컬 플레이어 인벤토리를 아직 찾지 못했습니다. 1초 후 재시도 예약.");
-            Invoke("RetryFindLocalPlayerInventory", 1.0f);
+            Invoke("RetryFindLocalPlayer", 1.0f);
         }
     }
 
-    private void RetryFindLocalPlayerInventory()
+    private void RetryFindLocalPlayer()
     {
-        FindLocalPlayerInventory();
+        FindLocalPlayer();
     }
 
 
@@ -202,11 +215,10 @@ public class UIManager : MonoBehaviour
 
     public void ToggleInventoryPanel()
     {
-        if (localInventory == null) FindLocalPlayerInventory();
+        if (localInventory == null) FindLocalPlayer();
 
         if (localInventory == null)
         {
-            Debug.LogError("로컬 인벤토리가 할당되지 않아 인벤토리 패널을 열 수 없습니다.");
             return;
         }
 
@@ -219,19 +231,14 @@ public class UIManager : MonoBehaviour
 
     public void OpenShop(List<ItemData> itemsToSell, Shop shopInstance)
     {
-        if (localInventory == null) FindLocalPlayerInventory();
+        if (localInventory == null) FindLocalPlayer();
 
         shopPanel.SetActive(true);
 
-        if (localInventory != null)
+        if (playerMove != null)
         {
-            PlayerMove playerMove = localInventory.GetComponent<PlayerMove>();
-            if (playerMove != null)
-            {
-                playerMove.canMove = false;
-            }
+            playerMove.canMove = false;
         }
-
 
         foreach (Transform child in shopContent)
         {
@@ -249,7 +256,6 @@ public class UIManager : MonoBehaviour
             }
             else
             {
-                Debug.LogError("ItemSlot 프리팹에 ItemSlot 컴포넌트가 누락되었습니다!");
             }
         }
     }
@@ -258,72 +264,38 @@ public class UIManager : MonoBehaviour
     {
         shopPanel.SetActive(false);
 
-        if (localInventory != null)
+        if (playerMove != null)
         {
-            PlayerMove playerMove = localInventory.GetComponent<PlayerMove>();
-            if (playerMove != null)
-            {
-                playerMove.canMove = true;
-            }
+            playerMove.canMove = true;
         }
     }
 
     public void UpdateInventoryUI()
     {
-        if (localInventory == null || !localInventory.pv.IsMine)
-        {
-            Debug.LogWarning("[UIManager] localInventory가 null이거나 IsMine이 아님. 다시 찾습니다.");
-            FindLocalPlayerInventory();
-        }
-
-        if (localInventory == null)
-        {
-            Debug.LogError("[UIManager] 여전히 로컬 인벤토리를 찾지 못했습니다.");
-            return;
-        }
-
-        Debug.Log($"[UIManager] localInventory Owner={localInventory.pv.Owner.ActorNumber}");
-
-
         if (localInventory == null || GameManager.Instance == null)
         {
-            Debug.LogError("로컬 인벤토리 또는 GameManager가 준비되지 않았습니다. UI 갱신 실패.");
             return;
         }
 
-        // 1) Content 밑에 있는 ItemSlot 전부 가져오기 (비활성 포함)
         ItemSlot[] slots = inventoryContent.GetComponentsInChildren<ItemSlot>(true);
-        Debug.Log($"[UIManager] 인벤토리 슬롯 개수: {slots.Length}");
 
         if (slots == null || slots.Length == 0)
         {
-            Debug.LogError("인벤토리 Content 밑에 ItemSlot 컴포넌트가 하나도 없습니다.");
             return;
         }
 
-        // 2) 모든 슬롯 비우기
         foreach (var slot in slots)
         {
             slot.Clear();
         }
 
-        // 3) 인벤토리 아이템 리스트 가져오기
         List<Inventory.ItemEntry> currentItems = localInventory.GetItems();
 
-        Debug.Log("--- UIManager: 인벤토리 UI 갱신 중 ---");
         if (currentItems == null || currentItems.Count == 0)
         {
-            Debug.Log("인벤토리가 현재 비어있습니다 (0개).");
             return;
         }
 
-        // 아이템 목록 찍어보기
-        foreach (var e in currentItems)
-        {
-            Debug.Log($"[UIManager] 인벤토리 아이템: {e.itemID}, x{e.quantity}");
-        }
-
-        // 4) 아이템을 슬롯에 채우기
         int slotIndex = 0;
 
         foreach (var entry in currentItems)
@@ -337,16 +309,12 @@ public class UIManager : MonoBehaviour
             ItemData data = GameManager.Instance.GetItemData(itemID);
             if (data == null)
             {
-                Debug.LogError($"[UIManager ERROR] ItemData를 찾을 수 없습니다. ItemID: '{itemID}'.");
                 continue;
             }
 
-            Debug.Log($"[UIManager] 슬롯 {slotIndex} 에 SetItem 호출: {itemID}, x{quantity}");
             slots[slotIndex].SetItem(data, quantity);
             slotIndex++;
         }
-
-        Debug.Log("------------------------------------------");
     }
 
 
@@ -364,7 +332,6 @@ public class UIManager : MonoBehaviour
             }
             else
             {
-                Debug.Log("골드가 부족합니다.");
             }
             confirmationPanel.SetActive(false);
         });

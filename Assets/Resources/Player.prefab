@@ -5985,8 +5985,9 @@ MonoBehaviour:
   playerCamera: {fileID: 0}
   mouseSensitivity: 250
   cameraUpDownLimit: 80
-  CharacterObject: {fileID: 0}
-  player_AttackObject: {fileID: 0}
+  CharacterObject: {fileID: 7071469743175646875}
+  player_AttackObject: {fileID: 5524636489542329833}
+  uiManager: {fileID: 0}
 --- !u!114 &7433059086367797155
 MonoBehaviour:
   m_ObjectHideFlags: 0

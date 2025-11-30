@@ -61,6 +61,7 @@ MonoBehaviour:
   - <OnTriggerEnter>g__RPCPlayerFullDown|24_0
   - RPCPlayerFullDown
   - RPCPlayerAttack
+  - RPCHitByAttack
   DisableAutoOpenWizard: 1
   ShowSettings: 0
   DevRegionSetOnce: 1
