@@ -165,7 +165,6 @@ public class UIManager : MonoBehaviour
         isPlayerSkill03 = false;
     }
 
-  
     public void StartAttackCooldown(float duration)
     {
         if (isPlayerAttact) return;
@@ -407,4 +406,9 @@ public class UIManager : MonoBehaviour
             confirmationPanel.SetActive(false);
         });
     }
+    //public override void OnLeftRoom()
+    //{
+    //    if (instance == this) instance = null;
+    //    Destroy(gameObject);
+    //}
 }

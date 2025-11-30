@@ -43,14 +43,16 @@ public class DisturbanceSystem : MonoBehaviourPunCallbacks
 
     private void Start()
     {
+        if (UIManager.instance != null)
+        {
+            uiManager = UIManager.instance;
+        }
+
         if (!player1EyePatch)
             player1EyePatch = GameObject.Find("UI_Player1_EyePatch");
 
         if (!player2EyePatch)
             player2EyePatch = GameObject.Find("UI_Player2_EyePatch");
-
-        if (!uiManager)
-            uiManager = GetComponent<UIManager>();
 
         if (player1EyePatch != null) player1EyePatch.SetActive(false);
         if (player2EyePatch != null) player2EyePatch.SetActive(false);
@@ -81,25 +83,21 @@ public class DisturbanceSystem : MonoBehaviourPunCallbacks
         {
             Player[] playerlist = PhotonNetwork.PlayerList;
 
-
             Player targetPlayer = playerlist.FirstOrDefault(p => p.ActorNumber != localPlayer.ActorNumber);
 
             if (targetPlayer != null)
             {
                 pv.RPC("RpcActivateEffectForTarget", targetPlayer, localPlayer.ActorNumber);
-                uiManager.isPlayerSkill01 = true;
-                StartCoroutine(NextUseTime(localPlayer.ActorNumber));
-                state.IsUseItem = true;         
-            }
-            else
-            {
-                Debug.LogWarning("타겟 플레이어 (나 외의 다른 플레이어)를 찾을 수 없습니다.");
-            }
 
-        }
-        else
-        {
-            Debug.Log($"사용 후 {COOLDOWN_DURATION}초 후에 다시 사용할 수 있습니다.");
+           
+                if (uiManager != null)
+                {
+                    uiManager.StartSkill01Cooldown();
+                }
+
+                StartCoroutine(NextUseTime(localPlayer.ActorNumber));
+                state.IsUseItem = true;
+            }
         }
     }
 
@@ -115,11 +113,9 @@ public class DisturbanceSystem : MonoBehaviourPunCallbacks
 
         if (eyePatch == null)
         {
-            Debug.LogError($"[RPC Error] 타겟 ({targetActorNumber})의 eye_patch가 연결되지 않았습니다.");
             yield break;
         }
 
-        Debug.Log("안대 사용 (효과 적용)");
         eyePatch.gameObject.SetActive(true);
         yield return new WaitForSeconds(EFFECT_DURATION);
         eyePatch.gameObject.SetActive(false);
@@ -139,7 +135,6 @@ public class DisturbanceSystem : MonoBehaviourPunCallbacks
         if (playerStates.ContainsKey(actorNumber))
         {
             playerStates[actorNumber].IsUseItem = false;
-            Debug.Log($"쿨타임 종료. 플레이어 {actorNumber} 다시 사용할 수 있습니다.");
         }
     }
 

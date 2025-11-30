@@ -14,6 +14,7 @@ public class TestCharacterPlayerMoveMent : MonoBehaviourPunCallbacks, IPunObserv
     public float runSpeed = 5f;
 
     public bool canMove = true;
+    public bool canAttack = true;
 
     [Header("Camera Settings")]
     public Camera playerCamera;
@@ -40,9 +41,10 @@ public class TestCharacterPlayerMoveMent : MonoBehaviourPunCallbacks, IPunObserv
     private int animID_IsMoving;
     private int animID_IsRunning;
     private int animID_IsFallingDown;
+    private int animeID_isAttack;
     private bool currentIsFallingDown = false;
+    private bool currentIsAttack = false;
     private Vector3 moveDirection;
-    private bool isNotPlayrAttact;
 
     private void Start()
     {
@@ -51,7 +53,7 @@ public class TestCharacterPlayerMoveMent : MonoBehaviourPunCallbacks, IPunObserv
             playerCamera = GetComponentInChildren<Camera>(true);
             if (playerCamera == null)
             {
-
+                // 카메라 없음 처리
             }
         }
 
@@ -86,6 +88,7 @@ public class TestCharacterPlayerMoveMent : MonoBehaviourPunCallbacks, IPunObserv
         animID_IsMoving = Animator.StringToHash("IsMoving");
         animID_IsRunning = Animator.StringToHash("IsRunning");
         animID_IsFallingDown = Animator.StringToHash("IsFallingDown");
+        animeID_isAttack = Animator.StringToHash("IsAttack");
 
         if (UIManager.instance != null)
         {
@@ -93,7 +96,7 @@ public class TestCharacterPlayerMoveMent : MonoBehaviourPunCallbacks, IPunObserv
         }
         else
         {
-            Debug.Log("못 찾음");
+            // UIManager 싱글톤 참조 실패
         }
     }
 
@@ -141,8 +144,7 @@ public class TestCharacterPlayerMoveMent : MonoBehaviourPunCallbacks, IPunObserv
             animator.SetBool(animID_IsRunning, false);
         }
 
- 
-        if (canMove && Input.GetMouseButtonDown(1))
+        if (canMove && canAttack && Input.GetMouseButtonDown(1))
         {
             photonView.RPC("RequestAttackRPC", RpcTarget.All);
         }
@@ -155,18 +157,21 @@ public class TestCharacterPlayerMoveMent : MonoBehaviourPunCallbacks, IPunObserv
             Move();
             return;
         }
+
         transform.position = Vector3.Lerp(transform.position, networkPosition, FIXED_LERP_RATE);
         transform.rotation = Quaternion.Slerp(transform.rotation, networkRotation, FIXED_LERP_RATE);
 
         animator.SetBool(animID_IsMoving, networkIsMoving);
         animator.SetBool(animID_IsRunning, networkIsRunning);
-        animator.SetBool(animID_IsFallingDown, currentIsFallingDown); // 해시 사용하도록 수정
+        animator.SetBool(animID_IsFallingDown, currentIsFallingDown);
+        animator.SetBool(animeID_isAttack, currentIsAttack); // 네트워크 공격 애니메이션 동기화
     }
 
 
     [PunRPC]
     public void RequestAttackRPC()
     {
+        // 모든 클라이언트에서 공격 코루틴 실행
         StartCoroutine(PlayerAttackStart());
     }
 
@@ -181,6 +186,7 @@ public class TestCharacterPlayerMoveMent : MonoBehaviourPunCallbacks, IPunObserv
             stream.SendNext(isMoving);
             stream.SendNext(currentIsRunning);
             stream.SendNext(currentIsFallingDown);
+            stream.SendNext(currentIsAttack); // 공격 상태 동기화
         }
         else
         {
@@ -189,6 +195,7 @@ public class TestCharacterPlayerMoveMent : MonoBehaviourPunCallbacks, IPunObserv
             networkIsMoving = (bool)stream.ReceiveNext();
             networkIsRunning = (bool)stream.ReceiveNext();
             currentIsFallingDown = (bool)stream.ReceiveNext();
+            currentIsAttack = (bool)stream.ReceiveNext(); // 공격 상태 수신
         }
     }
 
@@ -248,20 +255,29 @@ public class TestCharacterPlayerMoveMent : MonoBehaviourPunCallbacks, IPunObserv
 
     IEnumerator PlayerAttackStart()
     {
-        player_AttackObject.gameObject.SetActive(true);
         float cooldownDuration = 30f;
+        float attackDuration = 1.5f;
 
-        if (UIManager.instance != null)
+        canAttack = false;
+        currentIsAttack = true;
+        animator.SetBool(animeID_isAttack, currentIsAttack);
+
+        if (photonView.IsMine && UIManager.instance != null)
         {
             UIManager.instance.StartAttackCooldown(cooldownDuration);
         }
 
-        yield return new WaitForSeconds(1.5f);
-        player_AttackObject.gameObject.SetActive(false);
+        player_AttackObject.gameObject.SetActive(true);
 
- 
-        yield return new WaitForSeconds(cooldownDuration - 1.5f);
-        isNotPlayrAttact = false;
+        yield return new WaitForSeconds(attackDuration);
+
+        player_AttackObject.gameObject.SetActive(false);
+        currentIsAttack = false;
+        animator.SetBool(animeID_isAttack, currentIsAttack);
+
+        yield return new WaitForSeconds(cooldownDuration - attackDuration);
+
+        canAttack = true;
     }
 
     IEnumerator PlayerFullDown()
@@ -271,7 +287,6 @@ public class TestCharacterPlayerMoveMent : MonoBehaviourPunCallbacks, IPunObserv
 
         walkSpeed = 0f;
         runSpeed = 0f;
-
 
         currentIsFallingDown = true;
 
@@ -283,7 +298,6 @@ public class TestCharacterPlayerMoveMent : MonoBehaviourPunCallbacks, IPunObserv
 
         yield return new WaitForSeconds(2f);
 
-   
         currentIsFallingDown = false;
 
         if (photonView.IsMine)
