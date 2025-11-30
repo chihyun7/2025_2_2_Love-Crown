@@ -204,6 +204,7 @@ public class TestCharacterPlayerMoveMent : MonoBehaviourPunCallbacks, IPunObserv
         {
             StartCoroutine(DownPlayerSpeed());
             Debug.Log("방해 오브젝트와 충돌! 15초 동안 플레이어 속도 감소");
+            Destroy(other.gameObject);
         }
 
         if (other.CompareTag("PlayerAttact") && photonView.IsMine)
@@ -218,6 +219,7 @@ public class TestCharacterPlayerMoveMent : MonoBehaviourPunCallbacks, IPunObserv
             Debug.Log("방해 오브젝트 충돌");
             currentIsFallingDown = true;
             photonView.RPC("RPCPlayerFullDown", RpcTarget.All);
+            Destroy(other.gameObject);
         }
     }
 
