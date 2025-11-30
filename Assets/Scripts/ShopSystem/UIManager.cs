@@ -33,7 +33,6 @@ public class UIManager : MonoBehaviour
     public Slider playerskill02;
     public Slider playerskill03;
 
-    public DisturbanceSystem disturbanceSystem;
     public TestCharacterPlayerMoveMent characterPlayerMoveMent;
     public PlayerMove playerMove;
 
@@ -41,6 +40,8 @@ public class UIManager : MonoBehaviour
     public bool isPlayerAttact;
     public bool isPlayerSkill02;
     public bool isPlayerSkill03;
+
+    public float SkillTime = 30f;
 
     private Inventory localPlayerInventory;
     private PlayerQuestLog localPlayerQuestLog;
@@ -64,22 +65,20 @@ public class UIManager : MonoBehaviour
         FindLocalPlayer();
     }
 
-    private void Update()
-    {
-        
-    }
 
     public void StartSkill01Cooldown()
     {
-        if (isPlayerSkill01) return;
+        if (isPlayerSkill01)
+        {
+            return;
+        }
         isPlayerSkill01 = true;
         StartCoroutine(Skill01CooldownCoroutine());
     }
 
     private IEnumerator Skill01CooldownCoroutine()
-    {
-        if (disturbanceSystem == null) { isPlayerSkill01 = false; yield break; }
-        float duration = disturbanceSystem.COOLDOWN_DURATION;
+    { 
+        float duration = SkillTime;
         float currentTime = duration;
         playerskill01.maxValue = duration;
         while (currentTime > 0f) { currentTime -= Time.deltaTime; playerskill01.value = currentTime; yield return null; }
@@ -95,8 +94,8 @@ public class UIManager : MonoBehaviour
 
     private IEnumerator Skill02CooldownCoroutine()
     {
-        if (disturbanceSystem == null) { isPlayerSkill02 = false; yield break; }
-        float duration = disturbanceSystem.COOLDOWN_DURATION;
+       
+        float duration = SkillTime;
         float currentTime = duration;
         playerskill02.maxValue = duration;
         while (currentTime > 0f) { currentTime -= Time.deltaTime; playerskill02.value = currentTime; yield return null; }
@@ -112,8 +111,7 @@ public class UIManager : MonoBehaviour
 
     private IEnumerator Skill03CooldownCoroutine()
     {
-        if (disturbanceSystem == null) { isPlayerSkill03 = false; yield break; }
-        float duration = disturbanceSystem.COOLDOWN_DURATION;
+        float duration = SkillTime;
         float currentTime = duration;
         playerskill03.maxValue = duration;
         while (currentTime > 0f) { currentTime -= Time.deltaTime; playerskill03.value = currentTime; yield return null; }
@@ -195,7 +193,6 @@ public class UIManager : MonoBehaviour
                 localPlayerInventory = player.GetComponent<Inventory>();
                 localPlayerQuestLog = player.GetComponent<PlayerQuestLog>();
                 localPlayerMovement = player.GetComponent<TestCharacterPlayerMoveMent>();
-                disturbanceSystem = player.GetComponent<DisturbanceSystem>();
 
                 characterPlayerMoveMent = localPlayerMovement;
 

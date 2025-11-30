@@ -51,10 +51,6 @@ public class TestCharacterPlayerMoveMent : MonoBehaviourPunCallbacks, IPunObserv
         if (playerCamera == null)
         {
             playerCamera = GetComponentInChildren<Camera>(true);
-            if (playerCamera == null)
-            {
-                // 카메라 없음 처리
-            }
         }
 
         if (photonView.IsMine)
@@ -93,10 +89,6 @@ public class TestCharacterPlayerMoveMent : MonoBehaviourPunCallbacks, IPunObserv
         if (UIManager.instance != null)
         {
             uiManager = UIManager.instance;
-        }
-        else
-        {
-            // UIManager 싱글톤 참조 실패
         }
     }
 
@@ -164,14 +156,14 @@ public class TestCharacterPlayerMoveMent : MonoBehaviourPunCallbacks, IPunObserv
         animator.SetBool(animID_IsMoving, networkIsMoving);
         animator.SetBool(animID_IsRunning, networkIsRunning);
         animator.SetBool(animID_IsFallingDown, currentIsFallingDown);
-        animator.SetBool(animeID_isAttack, currentIsAttack); // 네트워크 공격 애니메이션 동기화
+        animator.SetBool(animeID_isAttack, currentIsAttack); 
     }
 
 
     [PunRPC]
     public void RequestAttackRPC()
     {
-        // 모든 클라이언트에서 공격 코루틴 실행
+
         StartCoroutine(PlayerAttackStart());
     }
 
@@ -186,7 +178,7 @@ public class TestCharacterPlayerMoveMent : MonoBehaviourPunCallbacks, IPunObserv
             stream.SendNext(isMoving);
             stream.SendNext(currentIsRunning);
             stream.SendNext(currentIsFallingDown);
-            stream.SendNext(currentIsAttack); // 공격 상태 동기화
+            stream.SendNext(currentIsAttack); 
         }
         else
         {
@@ -195,7 +187,7 @@ public class TestCharacterPlayerMoveMent : MonoBehaviourPunCallbacks, IPunObserv
             networkIsMoving = (bool)stream.ReceiveNext();
             networkIsRunning = (bool)stream.ReceiveNext();
             currentIsFallingDown = (bool)stream.ReceiveNext();
-            currentIsAttack = (bool)stream.ReceiveNext(); // 공격 상태 수신
+            currentIsAttack = (bool)stream.ReceiveNext(); 
         }
     }
 
@@ -284,11 +276,11 @@ public class TestCharacterPlayerMoveMent : MonoBehaviourPunCallbacks, IPunObserv
     {
         float originalWalkSpeed = walkSpeed;
         float originalRunSpeed = runSpeed;
-
+        currentIsFallingDown = true;
         walkSpeed = 0f;
         runSpeed = 0f;
-
         currentIsFallingDown = true;
+        animator.SetBool(animID_IsFallingDown, currentIsFallingDown);
 
         if (photonView.IsMine)
         {
@@ -298,8 +290,6 @@ public class TestCharacterPlayerMoveMent : MonoBehaviourPunCallbacks, IPunObserv
 
         yield return new WaitForSeconds(2f);
 
-        currentIsFallingDown = false;
-
         if (photonView.IsMine)
         {
             transform.rotation = Quaternion.Euler(0, 0, 0);
@@ -307,5 +297,8 @@ public class TestCharacterPlayerMoveMent : MonoBehaviourPunCallbacks, IPunObserv
             walkSpeed = originalWalkSpeed;
             runSpeed = originalRunSpeed;
         }
+        currentIsFallingDown = false;
+        animator.SetBool(animID_IsFallingDown, currentIsFallingDown);
+      
     }
 }

@@ -64,6 +64,7 @@ public class DisturbanceSystem : MonoBehaviourPunCallbacks
         {
             if (Input.GetKeyDown(KeyCode.Alpha1))
             {
+                Debug.Log("[DisturbanceSystem] Alpha1 입력 감지");
                 UseEyePatch_InputCheck(PhotonNetwork.LocalPlayer);
             }
         }
@@ -89,7 +90,7 @@ public class DisturbanceSystem : MonoBehaviourPunCallbacks
             {
                 pv.RPC("RpcActivateEffectForTarget", targetPlayer, localPlayer.ActorNumber);
 
-           
+              
                 if (uiManager != null)
                 {
                     uiManager.StartSkill01Cooldown();
