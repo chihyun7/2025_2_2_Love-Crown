@@ -69,4 +69,4 @@ MonoBehaviour:
       choices:
       - choiceText: "\uB2E4\uC74C\uC5D4 \uC783\uC5B4\uBC84\uB9AC\uC9C0\uB9C8!"
         likabilityChange: 0
-        action: 3
+        action: 0

@@ -59,4 +59,4 @@ MonoBehaviour:
       choices:
       - choiceText: "\uC5EC\uAE30 \uAC00\uC838\uC654\uC5B4."
         likabilityChange: 0
-        action: 3
+        action: 0

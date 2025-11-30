@@ -62,4 +62,4 @@ MonoBehaviour:
       choices:
       - choiceText: "\uBC25\uC740 \uAF2D \uCC59\uACA8 \uBA39\uC5B4."
         likabilityChange: 0
-        action: 3
+        action: 0

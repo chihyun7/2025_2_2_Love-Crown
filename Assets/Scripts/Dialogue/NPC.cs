@@ -109,7 +109,9 @@ public class NPC : MonoBehaviourPun
             }
             else if (questToOffer.objective.type == QuestObjective.ObjectiveType.Collect)
             {
-                if (status.currentProgress >= questToOffer.objective.targetItemQuantity)
+                int currentCount = localPlayerInventory.GetItemCount(questToOffer.objective.targetItemID);
+
+                if (currentCount >= questToOffer.objective.targetItemQuantity)
                 {
                     conditionMet = true;
                 }
@@ -223,7 +225,6 @@ public class NPC : MonoBehaviourPun
             }
         }
 
-        // 거절 아이템
         foreach (string itemID in rejectedItemIDs)
         {
             if (localPlayerInventory.HasItem(itemID))
