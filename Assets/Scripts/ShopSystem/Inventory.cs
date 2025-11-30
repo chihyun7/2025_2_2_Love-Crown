@@ -2,7 +2,6 @@
 using UnityEngine;
 using Photon.Pun;
 using Photon.Realtime;
-using System.Linq;
 
 public class Inventory : MonoBehaviourPunCallbacks, IPunObservable
 {
@@ -14,12 +13,7 @@ public class Inventory : MonoBehaviourPunCallbacks, IPunObservable
     {
         public string itemID;
         public int quantity;
-
-        public ItemEntry(string id, int qty)
-        {
-            itemID = id;
-            quantity = qty;
-        }
+        public ItemEntry(string id, int qty) { itemID = id; quantity = qty; }
     }
 
     private List<ItemEntry> items = new List<ItemEntry>();
@@ -27,111 +21,70 @@ public class Inventory : MonoBehaviourPunCallbacks, IPunObservable
 
     void Awake()
     {
-        if (pv == null)
-        {
-            pv = GetComponent<PhotonView>();
-        }
-
-        if (pv == null)
-        {
-            Debug.LogError("Inventory 컴포넌트에 PhotonView가 누락되었습니다.");
-        }
-
+        if (pv == null) pv = GetComponent<PhotonView>();
         questLog = GetComponent<PlayerQuestLog>();
     }
 
-    public List<ItemEntry> GetItems()
-    {
-        return items;
-    }
-
-    public bool CanAfford(int requiredPrice)
-    {
-        return gold >= requiredPrice;
-    }
+    public List<ItemEntry> GetItems() { return items; }
+    public bool CanAfford(int amount) { return gold >= amount; }
 
     [PunRPC]
     public void RpcExecuteBuy(string itemID, int price)
     {
-        RpcChangeGold(-price);
-
-        Debug.Log($"[Inventory] 아이템 [{itemID}] {1}개가 구매되어 인벤토리에 들어왔습니다."); // 아이템 획득 주석
+        gold -= price;
         AddItemToList(itemID, 1);
 
-
-        if (pv.IsMine)
-        {
-            UpdateLocalUI(); 
-        }
-
-        Debug.Log($"[Inventory] {pv.Owner.NickName} 구매 실행 완료: {itemID}. 남은 골드: {gold}");
+        if (pv.IsMine) UpdateLocalUI();
     }
 
-    // 인벤토리에 아이템을 추가하는 일반 메서드 (RPC 아님)
-    public void AddItem(string itemID, int quantity = 1)
+    [PunRPC]
+    public void RpcAddItem(string itemID, int quantity)
     {
         AddItemToList(itemID, quantity);
-
-        if (pv.IsMine)
-        {
-            UpdateLocalUI();
-        }
+        if (pv.IsMine) UpdateLocalUI();
     }
 
-    private void AddItemToList(string itemID, int quantity)
+    [PunRPC]
+    public void RpcChangeGold(int amount)
     {
-        // 1. 이미 존재하는 아이템인지 찾기
-        // FindIndex를 사용하여 ItemEntry의 itemID가 일치하는지 확인합니다.
-        int index = items.FindIndex(entry => entry.itemID == itemID);
-
-        if (index != -1)
+        gold += amount;
+        if (pv.IsMine)
         {
-            // 2. 이미 존재: 수량 증가 후 업데이트
-            ItemEntry existingEntry = items[index];
-            existingEntry.quantity += quantity;
-            items[index] = existingEntry;
-
-            Debug.Log($"[AddItemToList] 기존 아이템 수량 증가: {itemID}, 새 수량: {existingEntry.quantity}");
-        }
-        else
-        {
-            // 3. 새 아이템: 리스트에 추가
-            items.Add(new ItemEntry(itemID, quantity));
-
-            Debug.Log($"[AddItemToList] 새 아이템 추가: {itemID}, 수량: {quantity}");
-        }
-
-        if (pv.IsMine && questLog != null)
-        {
-            questLog.UpdateQuestProgress(itemID, GetItemCount(itemID));
+            if (UIManager.instance != null) UIManager.instance.UpdateGoldText(gold);
         }
     }
 
     [PunRPC]
     public void RemoveItem(string itemID)
     {
-        int quantityToRemove = 1;
-
         int index = items.FindIndex(entry => entry.itemID == itemID);
-
         if (index != -1)
         {
-            ItemEntry existingEntry = items[index];
-            existingEntry.quantity -= quantityToRemove;
-
-            if (existingEntry.quantity <= 0)
-            {
-                items.RemoveAt(index);
-            }
-            else
-            {
-                items[index] = existingEntry;
-            }
+            ItemEntry entry = items[index];
+            entry.quantity--;
+            if (entry.quantity <= 0) items.RemoveAt(index);
+            else items[index] = entry;
         }
 
         if (pv.IsMine)
         {
             UpdateLocalUI();
+            if (questLog != null) questLog.UpdateQuestProgress(itemID, GetItemCount(itemID));
+        }
+    }
+
+    private void AddItemToList(string itemID, int quantity)
+    {
+        int index = items.FindIndex(entry => entry.itemID == itemID);
+        if (index != -1)
+        {
+            ItemEntry entry = items[index];
+            entry.quantity += quantity;
+            items[index] = entry;
+        }
+        else
+        {
+            items.Add(new ItemEntry(itemID, quantity));
         }
 
         if (pv.IsMine && questLog != null)
@@ -140,36 +93,31 @@ public class Inventory : MonoBehaviourPunCallbacks, IPunObservable
         }
     }
 
-    public bool HasItem(string itemID)
+    private void UpdateLocalUI()
     {
-        ItemEntry entry = items.Find(e => e.itemID == itemID);
-        return entry.quantity > 0;
-    }
+        if (!pv.IsMine) return;
 
-   private void UpdateLocalUI()
-{
-        Debug.Log($"[Inventory] UpdateLocalUI 호출, Owner={pv.Owner.ActorNumber}, items.Count={items.Count}");
-
-        if (items.Count == 0)
-    {
-        Debug.Log("Inventory is empty.");
-    }
-    else
-    {
-        foreach (var entry in items)
+        if (UIManager.instance != null)
         {
-            Debug.Log($"Item ID: {entry.itemID}, Quantity: {entry.quantity}");
+            UIManager.instance.UpdateGoldText(gold);
+
+            if (UIManager.instance.inventoryPanel.activeInHierarchy)
+            {
+                UIManager.instance.UpdateInventoryUI();
+            }
         }
     }
 
-    if (UIManager.instance != null)
+    public int GetItemCount(string itemID)
     {
-        UIManager.instance.UpdateGoldText(gold);
-
-        // ★ 패널이 닫혀 있어도 그냥 항상 인벤토리 UI 갱신
-        UIManager.instance.UpdateInventoryUI();
+        int index = items.FindIndex(entry => entry.itemID == itemID);
+        return index != -1 ? items[index].quantity : 0;
     }
-}
+
+    public bool HasItem(string itemID)
+    {
+        return GetItemCount(itemID) > 0;
+    }
 
     public void OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)
     {
@@ -179,52 +127,8 @@ public class Inventory : MonoBehaviourPunCallbacks, IPunObservable
         }
         else
         {
-            int receivedGold = (int)stream.ReceiveNext();
-
-            if (gold != receivedGold)
-            {
-                gold = receivedGold;
-
-                if (pv.IsMine)
-                {
-                    UpdateLocalUI();
-                }
-            }
+            gold = (int)stream.ReceiveNext();
+            if (pv.IsMine) UpdateLocalUI();
         }
     }
-
-    public int GetItemCount(string itemID)
-    {
-        int index = items.FindIndex(entry => entry.itemID == itemID);
-        if (index != -1)
-        {
-            return items[index].quantity;
-        }
-        return 0;
-    }
-
-    [PunRPC]
-    public void RpcChangeGold(int amount)
-    {
-        gold += amount;
-        if (pv.IsMine) UIManager.instance.UpdateGoldText(gold);
-    }
-
-
-    [PunRPC]
-    public void RpcAddItem(string itemID, int quantity)
-    {
-        Debug.Log($"[Inventory] RpcAddItem on Owner={pv.Owner.ActorNumber}, IsMine={pv.IsMine}");
-
-        AddItemToList(itemID, quantity);
-
-        if (pv.IsMine)
-        {
-            Debug.Log("[Inventory] 로컬 인벤토리라서 UpdateLocalUI 호출");
-            UpdateLocalUI();
-        }
-    }
-
-
-
 }
