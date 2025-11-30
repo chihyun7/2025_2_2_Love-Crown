@@ -30,8 +30,8 @@ public class UIManager : MonoBehaviour
     [Header("Skill")]
     public Slider playerskill01;
     public Slider playerAttack;
+    public Slider playerskill02;
     public Slider playerskill03;
-    public Slider playerskIll04;
 
     public DisturbanceSystem disturbanceSystem;
     public TestCharacterPlayerMoveMent characterPlayerMoveMent;
@@ -39,8 +39,8 @@ public class UIManager : MonoBehaviour
 
     public bool isPlayerSkill01;
     public bool isPlayerAttact;
+    public bool isPlayerSkill02;
     public bool isPlayerSkill03;
-    public bool isPlayerSkilil04;
 
     private Inventory localInventory;
     private GameObject localPlayerObject;
@@ -101,6 +101,71 @@ public class UIManager : MonoBehaviour
         isPlayerSkill01 = false;
     }
 
+    public void StartSkill02Cooldown()
+    {
+        if (isPlayerSkill02) return;
+
+        isPlayerSkill02 = true;
+        StartCoroutine(Skill02CooldownCoroutine());
+    }
+
+    private IEnumerator Skill02CooldownCoroutine()
+    {
+        if (disturbanceSystem == null)
+        {
+            isPlayerSkill02 = false;
+            yield break;
+        }
+
+        float cooldownDuration = disturbanceSystem.COOLDOWN_DURATION;
+        float currentTime = cooldownDuration;
+
+        playerskill02.maxValue = cooldownDuration;
+
+        while (currentTime > 0f)
+        {
+            currentTime -= Time.deltaTime;
+            playerskill02.value = currentTime;
+            yield return null;
+        }
+
+        playerskill02.value = 0f;
+        isPlayerSkill02 = false;
+    }
+
+    public void StartSkill03Cooldown()
+    {
+        if (isPlayerSkill03) return;
+
+        isPlayerSkill03 = true;
+        StartCoroutine(Skill03CooldownCoroutine());
+    }
+
+    private IEnumerator Skill03CooldownCoroutine()
+    {
+        if (disturbanceSystem == null)
+        {
+            isPlayerSkill03 = false;
+            yield break;
+        }
+
+        float cooldownDuration = disturbanceSystem.COOLDOWN_DURATION;
+        float currentTime = cooldownDuration;
+
+        playerskill03.maxValue = cooldownDuration;
+
+        while (currentTime > 0f)
+        {
+            currentTime -= Time.deltaTime;
+            playerskill03.value = currentTime;
+            yield return null;
+        }
+
+        playerskill03.value = 0f;
+        isPlayerSkill03 = false;
+    }
+
+  
     public void StartAttackCooldown(float duration)
     {
         if (isPlayerAttact) return;
