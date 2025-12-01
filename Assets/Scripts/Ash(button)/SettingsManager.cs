@@ -33,6 +33,11 @@ public class SettingsManager : MonoBehaviour
                 // CloseSettings(); 
             }
         }
+
+        if (Input.GetKeyDown(KeyCode.Escape) && settingsPanel.activeSelf)
+        {
+            CloseSettings();
+        }
     }
     
     // 💡 슬라이더에 연결할 함수들: 드래그 시작/종료 시 호출됩니다.
