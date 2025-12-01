@@ -32,9 +32,9 @@ public class UIManager : MonoBehaviour
     public Slider playerskill02;
     public Slider playerskill03;
 
-    private Inventory localPlayerInventory;
-    private PlayerQuestLog localPlayerQuestLog;
-    private TestCharacterPlayerMoveMent localPlayerMovement;
+    public Inventory localPlayerInventory;
+    public PlayerQuestLog localPlayerQuestLog;
+    public TestCharacterPlayerMoveMent localPlayerMovement;
     public DisturbanceSystem disturbanceSystem;
 
     public bool isPlayerSkill01;
@@ -46,6 +46,29 @@ public class UIManager : MonoBehaviour
     {
         if (instance == null) instance = this;
         else Destroy(gameObject);
+    }
+
+    void Update()
+    {
+        if (Input.GetKeyDown(KeyCode.P))
+        {
+            Debug.Log("[UIManager] P키 눌림: 내 플레이어 강제 탐색 시도");
+            FindLocalPlayer();
+        }
+    }
+
+    public void FindLocalPlayer()
+    {
+        foreach (var player in FindObjectsOfType<PhotonView>())
+        {
+            if (player.IsMine && player.GetComponent<Inventory>() != null)
+            {
+                SetLocalPlayer(player.gameObject);
+                Debug.Log($"[UIManager] P키로 내 플레이어 강제 탐색 성공: {player.Owner.NickName}");
+                return;
+            }
+        }
+        Debug.LogWarning("[UIManager] 내 플레이어를 찾지 못했습니다.");
     }
 
     public void SetLocalPlayer(GameObject playerObj)

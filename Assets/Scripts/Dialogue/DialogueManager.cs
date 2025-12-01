@@ -22,6 +22,8 @@ public class DialogueManager : MonoBehaviour
 
     void Start()
     {
+        IsDialogueActive = false;
+
         dialogueLines = new Queue<DialogueLine>();
     }
 

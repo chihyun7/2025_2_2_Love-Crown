@@ -1,9 +1,21 @@
+using Photon.Pun;
 using UnityEngine;
 
 public class PlayerInput : MonoBehaviour
 {
+    private PhotonView pv;
+
+    void Start()
+    {
+        pv = GetComponent<PhotonView>();
+    }
+
     void Update()
     {
+        if (pv == null || !pv.IsMine) return;
+
+        if (DialogueManager.IsDialogueActive) return;
+
         if (Input.GetKeyDown(KeyCode.B))
         {
             if (!DialogueManager.IsDialogueActive && !UIManager.instance.shopPanel.activeInHierarchy)
