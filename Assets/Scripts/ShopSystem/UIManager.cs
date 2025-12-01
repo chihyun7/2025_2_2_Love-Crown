@@ -107,14 +107,10 @@ public class UIManager : MonoBehaviour
     {
         if (localPlayerInventory == null) return;
 
-        foreach (Transform child in inventoryContent)
-        {
-            Destroy(child.gameObject);
-        }
+        foreach (Transform child in inventoryContent) Destroy(child.gameObject);
 
         List<Inventory.ItemEntry> currentItems = localPlayerInventory.GetItems();
-
-        int maxSlotCount = 12;
+        int maxSlotCount = 10;
 
         for (int i = 0; i < maxSlotCount; i++)
         {
@@ -126,14 +122,19 @@ public class UIManager : MonoBehaviour
                 if (i < currentItems.Count)
                 {
                     var itemEntry = currentItems[i];
+
+                    Debug.Log($"[UI] 슬롯 {i} 채우기 시도: ID '{itemEntry.itemID}' 검색 중...");
+
                     ItemData data = GameManager.Instance.GetItemData(itemEntry.itemID);
 
                     if (data != null)
                     {
+                        Debug.Log($" -> 데이터 찾음! 이름: {data.itemName}");
                         slot.SetItem(data, itemEntry.quantity);
                     }
                     else
                     {
+                        Debug.LogError($" -> 데이터 찾기 실패! GameManager에 '{itemEntry.itemID}'가 등록되었는지 확인하세요.");
                         slot.Clear();
                     }
                 }
