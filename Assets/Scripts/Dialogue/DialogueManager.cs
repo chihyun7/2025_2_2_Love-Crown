@@ -31,16 +31,14 @@ public class DialogueManager : MonoBehaviour
         currentNpc = npc;
         currentQuestOffer = questToOffer;
 
-        localPlayerQuestLog = FindObjectOfType<PlayerQuestLog>();
-        if (localPlayerQuestLog == null)
+        
+        localPlayerQuestLog = null;
+        foreach (var log in FindObjectsOfType<PlayerQuestLog>())
         {
-            foreach (var log in FindObjectsOfType<PlayerQuestLog>())
+            if (log.GetComponent<PhotonView>().IsMine)
             {
-                if (log.GetComponent<PhotonView>().IsMine)
-                {
-                    localPlayerQuestLog = log;
-                    break;
-                }
+                localPlayerQuestLog = log;
+                break;
             }
         }
 

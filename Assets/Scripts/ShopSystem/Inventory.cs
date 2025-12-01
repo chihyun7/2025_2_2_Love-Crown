@@ -30,6 +30,22 @@ public class Inventory : MonoBehaviourPunCallbacks, IPunObservable
         questLog = GetComponent<PlayerQuestLog>();
     }
 
+    void Start()
+    {
+        if (pv.IsMine)
+        {
+            if (UIManager.instance != null)
+            {
+                UIManager.instance.SetLocalPlayer(this.gameObject);
+                UIManager.instance.UpdateGoldText(gold);
+            }
+            else
+            {
+                Debug.LogError("UIManager를 찾을 수 없습니다!");
+            }
+        }
+    }
+
     public List<ItemEntry> GetItems()
     {
         return items;
