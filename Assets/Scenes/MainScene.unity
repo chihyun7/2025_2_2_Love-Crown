@@ -7388,7 +7388,20 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "\uC124\uBA85\uB780"
+  m_text: "\uC81C\uD55C \uC2DC\uAC04 \uB3D9\uC548 \uC0C1\uB300\uBC29\uBCF4\uB2E4
+    \uB354 \uB9CE\uC740 NPC\uB97C \uADC0\uC18D\uC2DC\uD0A4\uBA74 \uC2B9\uB9AC\uD558\uB294
+    \uAC8C\uC784\uC785\uB2C8\uB2E4!\r\n\uD559\uAD50 \uC548\uC5D0\uC11C NPC\uB97C
+    \uCC3E\uC544 \uB300\uD654\uB97C \uD1B5\uD574 \uD018\uC2A4\uD2B8\uB97C \uC218\uB77D\uD558\uACE0, 
+    \r\n\uD018\uC2A4\uD2B8 \uD074\uB9AC\uC5B4 \uC2DC NPC\uC758 \uD638\uAC10\uB3C4
+    \uC0C1\uC2B9\uC73C\uB85C \uD574\uB2F9 \uD50C\uB808\uC774\uC5B4\uC5D0\uAC8C \uADC0\uC18D\uB429\uB2C8\uB2E4.\r\n\uD018\uC2A4\uD2B8
+    \uD074\uB9AC\uC5B4 \uC2DC\uC5D0 \uD544\uC694\uD55C \uC544\uC774\uD15C\uC740 \uC0C1\uC790\uB97C
+    \uD1B5\uD574 \uD68D\uB4DD\uD558\uAC70\uB098, \n\uD559\uAD50 \uC548\uC5D0\uC11C
+    \uCC3E\uC544\uC57C\uD569\uB2C8\uB2E4.\r\n\r\n\uD654\uBA74\uC758 \uC67C\uCABD\uC544\uB798
+    \uD568\uC815 \uC544\uC774\uD15C\uC744 \uC0AC\uC6A9\uD558\uC5EC \uC0C1\uB300 \uD50C\uB808\uC774\uC5B4\uB97C
+    \uBC29\uD574\uD560 \uC218 \uC788\uC2B5\uB2C8\uB2E4.\r\n\r\n\uB9F5\uC5D0 \uD559\uC0DD\uCC98\uB7FC
+    \uC0DD\uAE34 \uAC00\uC9DC NPC\uAC00 \uBC30\uCE58\uB418\uC5B4 \uC788\uC744\uC9C0\uB3C4..?\r\n\r\nB\uD0A4: 
+    \uC778\uBCA4\uD1A0\uB9AC   J\uD0A4:  \uD018\uC2A4\uD2B8 \uD604\uD669\uCC3D  
+    E\uD0A4:  NPC \uC0C1\uD638\uC791\uC6A9 \uD0A4"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 9975ad88ff2d0c04eb8ba6a0d0f4fef6, type: 2}
   m_sharedMaterial: {fileID: -6982761501913337782, guid: 9975ad88ff2d0c04eb8ba6a0d0f4fef6,
@@ -7416,8 +7429,8 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 36
-  m_fontSizeBase: 36
+  m_fontSize: 25
+  m_fontSizeBase: 25
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
@@ -7452,7 +7465,7 @@ MonoBehaviour:
   m_VertexBufferAutoSizeReduction: 0
   m_useMaxVisibleDescender: 1
   m_pageToDisplay: 1
-  m_margin: {x: 0, y: 0, z: 0, w: 0}
+  m_margin: {x: 0, y: 0, z: -521.6865, w: 0}
   m_isUsingLegacyAnimationComponent: 0
   m_isVolumetricText: 0
   m_hasFontAssetChanged: 0
