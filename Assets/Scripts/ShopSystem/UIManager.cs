@@ -107,19 +107,39 @@ public class UIManager : MonoBehaviour
     {
         if (localPlayerInventory == null) return;
 
-        foreach (Transform child in inventoryContent) Destroy(child.gameObject);
-
-        foreach (var itemEntry in localPlayerInventory.GetItems())
+        foreach (Transform child in inventoryContent)
         {
-            ItemData data = GameManager.Instance.GetItemData(itemEntry.itemID);
-            if (data != null)
-            {
-                GameObject slotGO = Instantiate(itemSlotPrefab, inventoryContent);
-                ItemSlot slot = slotGO.GetComponent<ItemSlot>();
+            Destroy(child.gameObject);
+        }
 
-                if (slot != null)
+        List<Inventory.ItemEntry> currentItems = localPlayerInventory.GetItems();
+
+        int maxSlotCount = 12;
+
+        for (int i = 0; i < maxSlotCount; i++)
+        {
+            GameObject slotGO = Instantiate(itemSlotPrefab, inventoryContent);
+            ItemSlot slot = slotGO.GetComponent<ItemSlot>();
+
+            if (slot != null)
+            {
+                if (i < currentItems.Count)
                 {
-                    slot.SetItem(data, itemEntry.quantity);
+                    var itemEntry = currentItems[i];
+                    ItemData data = GameManager.Instance.GetItemData(itemEntry.itemID);
+
+                    if (data != null)
+                    {
+                        slot.SetItem(data, itemEntry.quantity);
+                    }
+                    else
+                    {
+                        slot.Clear();
+                    }
+                }
+                else
+                {
+                    slot.Clear();
                 }
             }
         }
