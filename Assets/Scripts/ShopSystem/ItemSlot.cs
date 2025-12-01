@@ -15,7 +15,7 @@ public class ItemSlot : MonoBehaviour
 
     private void Start()
     {
-        Clear();
+        //Clear();
     }
 
     public void Initialize(ItemData item, Action onBuyClicked)
