@@ -17,7 +17,6 @@ public class VolumeController : MonoBehaviour
     {
         // 씬 시작 시 Slider의 OnValueChanged 이벤트에 함수 연결
         bgmSlider.onValueChanged.AddListener(SetBGMVolume);
-        sfxSlider.onValueChanged.AddListener(SetSFXVolume);
         
         // (선택) 저장된 볼륨 값 로드 후 슬라이더 초기화
         LoadVolumeSettings();

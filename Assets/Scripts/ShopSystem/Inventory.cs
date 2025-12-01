@@ -2,7 +2,6 @@
 using UnityEngine;
 using Photon.Pun;
 using Photon.Realtime;
-using System.Linq;
 
 public class Inventory : MonoBehaviourPunCallbacks, IPunObservable
 {
@@ -27,16 +26,7 @@ public class Inventory : MonoBehaviourPunCallbacks, IPunObservable
 
     void Awake()
     {
-        if (pv == null)
-        {
-            pv = GetComponent<PhotonView>();
-        }
-
-        if (pv == null)
-        {
-            Debug.LogError("Inventory 컴포넌트에 PhotonView가 누락되었습니다.");
-        }
-
+        if (pv == null) pv = GetComponent<PhotonView>();
         questLog = GetComponent<PlayerQuestLog>();
     }
 
@@ -53,21 +43,15 @@ public class Inventory : MonoBehaviourPunCallbacks, IPunObservable
     [PunRPC]
     public void RpcExecuteBuy(string itemID, int price)
     {
-        RpcChangeGold(-price);
-
-        Debug.Log($"[Inventory] 아이템 [{itemID}] {1}개가 구매되어 인벤토리에 들어왔습니다."); // 아이템 획득 주석
+        gold -= price;
         AddItemToList(itemID, 1);
-
 
         if (pv.IsMine)
         {
-            UpdateLocalUI(); 
+            UpdateLocalUI();
         }
-
-        Debug.Log($"[Inventory] {pv.Owner.NickName} 구매 실행 완료: {itemID}. 남은 골드: {gold}");
     }
 
-    // 인벤토리에 아이템을 추가하는 일반 메서드 (RPC 아님)
     public void AddItem(string itemID, int quantity = 1)
     {
         AddItemToList(itemID, quantity);
@@ -80,25 +64,17 @@ public class Inventory : MonoBehaviourPunCallbacks, IPunObservable
 
     private void AddItemToList(string itemID, int quantity)
     {
-        // 1. 이미 존재하는 아이템인지 찾기
-        // FindIndex를 사용하여 ItemEntry의 itemID가 일치하는지 확인합니다.
         int index = items.FindIndex(entry => entry.itemID == itemID);
 
         if (index != -1)
         {
-            // 2. 이미 존재: 수량 증가 후 업데이트
             ItemEntry existingEntry = items[index];
             existingEntry.quantity += quantity;
             items[index] = existingEntry;
-
-            Debug.Log($"[AddItemToList] 기존 아이템 수량 증가: {itemID}, 새 수량: {existingEntry.quantity}");
         }
         else
         {
-            // 3. 새 아이템: 리스트에 추가
             items.Add(new ItemEntry(itemID, quantity));
-
-            Debug.Log($"[AddItemToList] 새 아이템 추가: {itemID}, 수량: {quantity}");
         }
 
         if (pv.IsMine && questLog != null)
@@ -110,14 +86,12 @@ public class Inventory : MonoBehaviourPunCallbacks, IPunObservable
     [PunRPC]
     public void RemoveItem(string itemID)
     {
-        int quantityToRemove = 1;
-
         int index = items.FindIndex(entry => entry.itemID == itemID);
 
         if (index != -1)
         {
             ItemEntry existingEntry = items[index];
-            existingEntry.quantity -= quantityToRemove;
+            existingEntry.quantity -= 1;
 
             if (existingEntry.quantity <= 0)
             {
@@ -132,65 +106,16 @@ public class Inventory : MonoBehaviourPunCallbacks, IPunObservable
         if (pv.IsMine)
         {
             UpdateLocalUI();
-        }
-
-        if (pv.IsMine && questLog != null)
-        {
-            questLog.UpdateQuestProgress(itemID, GetItemCount(itemID));
+            if (questLog != null)
+            {
+                questLog.UpdateQuestProgress(itemID, GetItemCount(itemID));
+            }
         }
     }
 
     public bool HasItem(string itemID)
     {
-        ItemEntry entry = items.Find(e => e.itemID == itemID);
-        return entry.quantity > 0;
-    }
-
-   private void UpdateLocalUI()
-{
-        Debug.Log($"[Inventory] UpdateLocalUI 호출, Owner={pv.Owner.ActorNumber}, items.Count={items.Count}");
-
-        if (items.Count == 0)
-    {
-        Debug.Log("Inventory is empty.");
-    }
-    else
-    {
-        foreach (var entry in items)
-        {
-            Debug.Log($"Item ID: {entry.itemID}, Quantity: {entry.quantity}");
-        }
-    }
-
-    if (UIManager.instance != null)
-    {
-        UIManager.instance.UpdateGoldText(gold);
-
-        // ★ 패널이 닫혀 있어도 그냥 항상 인벤토리 UI 갱신
-        UIManager.instance.UpdateInventoryUI();
-    }
-}
-
-    public void OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)
-    {
-        if (stream.IsWriting)
-        {
-            stream.SendNext(gold);
-        }
-        else
-        {
-            int receivedGold = (int)stream.ReceiveNext();
-
-            if (gold != receivedGold)
-            {
-                gold = receivedGold;
-
-                if (pv.IsMine)
-                {
-                    UpdateLocalUI();
-                }
-            }
-        }
+        return GetItemCount(itemID) > 0;
     }
 
     public int GetItemCount(string itemID)
@@ -203,28 +128,59 @@ public class Inventory : MonoBehaviourPunCallbacks, IPunObservable
         return 0;
     }
 
+    private void UpdateLocalUI()
+    {
+        if (!pv.IsMine) return;
+
+        if (UIManager.instance != null)
+        {
+            UIManager.instance.UpdateGoldText(gold);
+
+            if (UIManager.instance.inventoryPanel.activeInHierarchy)
+            {
+                UIManager.instance.UpdateInventoryUI();
+            }
+        }
+    }
+
+    public void OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)
+    {
+        if (stream.IsWriting)
+        {
+            stream.SendNext(gold);
+        }
+        else
+        {
+            int receivedGold = (int)stream.ReceiveNext();
+            if (gold != receivedGold)
+            {
+                gold = receivedGold;
+                if (pv.IsMine) UpdateLocalUI();
+            }
+        }
+    }
+
     [PunRPC]
     public void RpcChangeGold(int amount)
     {
         gold += amount;
-        if (pv.IsMine) UIManager.instance.UpdateGoldText(gold);
+        if (pv.IsMine)
+        {
+            if (UIManager.instance != null)
+            {
+                UIManager.instance.UpdateGoldText(gold);
+            }
+        }
     }
-
 
     [PunRPC]
     public void RpcAddItem(string itemID, int quantity)
     {
-        Debug.Log($"[Inventory] RpcAddItem on Owner={pv.Owner.ActorNumber}, IsMine={pv.IsMine}");
-
         AddItemToList(itemID, quantity);
 
         if (pv.IsMine)
         {
-            Debug.Log("[Inventory] 로컬 인벤토리라서 UpdateLocalUI 호출");
             UpdateLocalUI();
         }
     }
-
-
-
 }
