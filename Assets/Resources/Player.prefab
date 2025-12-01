@@ -5784,6 +5784,8 @@ GameObject:
   - component: {fileID: 7433059086367797155}
   - component: {fileID: 3161320380100216681}
   - component: {fileID: 4526642435382698241}
+  - component: {fileID: 8819670127627836207}
+  - component: {fileID: -7955880625417934394}
   m_Layer: 0
   m_Name: Player
   m_TagString: Player
@@ -6038,6 +6040,36 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   completedQuestIDs: []
+--- !u!114 &8819670127627836207
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6146745496848706658}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b01e6be344975f44a8ad771223304c85, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  uiManager: {fileID: 0}
+  player1EyePatch: {fileID: 0}
+  player2EyePatch: {fileID: 0}
+--- !u!114 &-7955880625417934394
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6146745496848706658}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 108ca9baf90fdd14e82c1d0b2903c52f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  fallTrapName: BananaTrap
+  slowTrapName: SlowTrap
+  trapCooldown: 10
 --- !u!1 &6166801011537587117
 GameObject:
   m_ObjectHideFlags: 0
