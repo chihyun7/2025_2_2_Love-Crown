@@ -21,8 +21,8 @@ MonoBehaviour:
     targetItemQuantity: 0
     targetNPCName: "\uBAA8\uBC94\uC0DD"
     targetLikability: 0
-  rewardGold: 50
-  rewardLikability: 50
+  rewardGold: 0
+  rewardLikability: 100
   rewardItem: {fileID: 0}
   rewardItemQuantity: 0
   startDialogue:
