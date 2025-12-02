@@ -17,8 +17,10 @@ public class PhotonManager : MonoBehaviourPunCallbacks
     public Text statusText;
 
     public GameObject gamestartButton;
+    public bool isMasterServer;
     private StringBuilder sb = new StringBuilder();
     private static PhotonManager Instance;
+    
 
     private void Awake()
     {
@@ -65,6 +67,7 @@ public class PhotonManager : MonoBehaviourPunCallbacks
     public override void OnConnectedToMaster()
     {
         statusText.text = "마스터 서버 연결 성공!";
+        isMasterServer = true;
         PhotonNetwork.JoinLobby();
     }
 
