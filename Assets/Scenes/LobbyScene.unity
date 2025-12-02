@@ -968,7 +968,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &161398475
 RectTransform:
   m_ObjectHideFlags: 0
@@ -1432,7 +1432,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "\uD604\uC7AC \uBC29 \uC774\uB984 : 1 - A"
+  m_text: "\uBC29 \uC785\uC7A5"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 9975ad88ff2d0c04eb8ba6a0d0f4fef6, type: 2}
   m_sharedMaterial: {fileID: -6982761501913337782, guid: 9975ad88ff2d0c04eb8ba6a0d0f4fef6,
@@ -4519,12 +4519,17 @@ MonoBehaviour:
   gameVersion: 1.0
   playerInput: {fileID: 1743349191}
   createNameInput: {fileID: 995840731}
-  statusText: {fileID: 0}
   LobbyPanel: {fileID: 1429134366}
   GameInUI: {fileID: 1851906637}
-  roomNameText: {fileID: 2012995117}
-  isMaster: 0
+  roomNameText: {fileID: 240011526}
   gamestartButton: {fileID: 407958}
+  playerCard01: {fileID: 1965919757}
+  playerName01: {fileID: 8782737}
+  playerRoomName01: {fileID: 1436440730}
+  playerCard02: {fileID: 2072719755}
+  playerName02: {fileID: 236829062}
+  playerRoomName02: {fileID: 2012995117}
+  isMaster: 0
 --- !u!4 &1400409617
 Transform:
   m_ObjectHideFlags: 0
@@ -4827,7 +4832,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &1429134367
 RectTransform:
   m_ObjectHideFlags: 0

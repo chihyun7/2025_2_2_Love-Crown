@@ -1,7 +1,4 @@
 using System.Collections;
-using System.Collections.Generic;
-using Unity.VisualScripting;
-using UnityEditor.Rendering.LookDev;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -19,7 +16,7 @@ public class FadeManager : MonoBehaviour
             photonManager = FindAnyObjectByType<PhotonManager>();
         }
 
-        if (photonManager != null && photonManager.isMaster)
+        if (photonManager != null )
         {
             StartFadeIn();
             return;

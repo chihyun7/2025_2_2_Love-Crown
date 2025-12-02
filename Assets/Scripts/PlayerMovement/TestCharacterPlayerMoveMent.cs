@@ -51,10 +51,7 @@ public class TestCharacterPlayerMoveMent : MonoBehaviourPunCallbacks, IPunObserv
         if (playerCamera == null)
         {
             playerCamera = GetComponentInChildren<Camera>(true);
-            if (playerCamera == null)
-            {
-                // 카메라 없음 처리
-            }
+            if (playerCamera == null) return;
         }
 
         if (photonView.IsMine)
