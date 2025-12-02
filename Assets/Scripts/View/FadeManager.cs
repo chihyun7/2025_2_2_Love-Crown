@@ -1,7 +1,4 @@
 using System.Collections;
-using System.Collections.Generic;
-using Unity.VisualScripting;
-using UnityEditor.Rendering.LookDev;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -11,6 +8,10 @@ public class FadeManager : MonoBehaviour
     public float fadeDuration = 1.0f;
     public PhotonManager photonManager;
 
+    private void Start()
+    {
+        fadePanel.gameObject.SetActive(true);
+    }
     private void Update()
     {
         if (!photonManager)
@@ -19,7 +20,7 @@ public class FadeManager : MonoBehaviour
             photonManager = FindAnyObjectByType<PhotonManager>();
         }
 
-        if (photonManager != null && photonManager.isMasterServer)
+        if (photonManager != null && photonManager.isMaster)
         {
             StartFadeIn();
             return;
@@ -27,11 +28,6 @@ public class FadeManager : MonoBehaviour
         }
         else
             Debug.Log("isMasterServer가 flase 입니다.");      
-    }
-
-    public void StartFadeOut()
-    {
-        StartCoroutine(Fade(1, fadeDuration));
     }
 
     public void StartFadeIn()
