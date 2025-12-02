@@ -8,6 +8,10 @@ public class FadeManager : MonoBehaviour
     public float fadeDuration = 1.0f;
     public PhotonManager photonManager;
 
+    private void Start()
+    {
+        fadePanel.gameObject.SetActive(true);
+    }
     private void Update()
     {
         if (!photonManager)
@@ -16,7 +20,7 @@ public class FadeManager : MonoBehaviour
             photonManager = FindAnyObjectByType<PhotonManager>();
         }
 
-        if (photonManager != null )
+        if (photonManager != null && photonManager.isMaster)
         {
             StartFadeIn();
             return;
