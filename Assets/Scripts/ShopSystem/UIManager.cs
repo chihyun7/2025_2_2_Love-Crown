@@ -31,11 +31,13 @@ public class UIManager : MonoBehaviour
     public Slider playerAttack;
     public Slider playerskill02;
     public Slider playerskill03;
+    public float SkillTime;
 
     public Inventory localPlayerInventory;
     public PlayerQuestLog localPlayerQuestLog;
     public TestCharacterPlayerMoveMent localPlayerMovement;
     public DisturbanceSystem disturbanceSystem;
+    
 
     public bool isPlayerSkill01;
     public bool isPlayerAttact;
@@ -246,30 +248,71 @@ public class UIManager : MonoBehaviour
         });
     }
 
-    public void StartSkill01Cooldown() { if (!isPlayerSkill01) { isPlayerSkill01 = true; StartCoroutine(Skill01CooldownCoroutine()); } }
-    public void StartSkill02Cooldown() { if (!isPlayerSkill02) { isPlayerSkill02 = true; StartCoroutine(Skill02CooldownCoroutine()); } }
-    public void StartSkill03Cooldown() { if (!isPlayerSkill03) { isPlayerSkill03 = true; StartCoroutine(Skill03CooldownCoroutine()); } }
-    public void StartAttackCooldown(float duration) { if (!isPlayerAttact) { isPlayerAttact = true; StartCoroutine(AttackCooldownCoroutine(duration)); } }
-
-    private IEnumerator Skill01CooldownCoroutine() { return CooldownRoutine(playerskill01, () => isPlayerSkill01 = false); }
-    private IEnumerator Skill02CooldownCoroutine() { return CooldownRoutine(playerskill02, () => isPlayerSkill02 = false); }
-    private IEnumerator Skill03CooldownCoroutine() { return CooldownRoutine(playerskill03, () => isPlayerSkill03 = false); }
-
-    private IEnumerator CooldownRoutine(Slider slider, System.Action onComplete)
+    // 소화기
+    public void StartSkill01Cooldown() // 연결 완료
     {
-        if (disturbanceSystem == null) { onComplete?.Invoke(); yield break; }
-        float duration = disturbanceSystem.COOLDOWN_DURATION;
-        float current = duration;
-        slider.maxValue = duration;
-        while (current > 0) { current -= Time.deltaTime; slider.value = current; yield return null; }
-        slider.value = 0; onComplete?.Invoke();
+        if (isPlayerSkill01)
+        {
+            return;
+        }
+        isPlayerSkill01 = true;
+        StartCoroutine(Skill01CooldownCoroutine());
+    }
+
+    private IEnumerator Skill01CooldownCoroutine()
+    {
+        float duration = SkillTime;
+        float currentTime = duration;
+        playerskill01.maxValue = duration;
+        while (currentTime > 0f) { currentTime -= Time.deltaTime; playerskill01.value = currentTime; yield return null; }
+        playerskill01.value = 0f; isPlayerSkill01 = false;
+    }
+    // 껌
+    public void StartSkill02Cooldown()
+    {
+        if (isPlayerSkill02) return;
+        isPlayerSkill02 = true;
+        StartCoroutine(Skill02CooldownCoroutine());
+    }
+
+    private IEnumerator Skill02CooldownCoroutine()
+    {
+
+        float duration = SkillTime;
+        float currentTime = duration;
+        playerskill02.maxValue = duration;
+        while (currentTime > 0f) { currentTime -= Time.deltaTime; playerskill02.value = currentTime; yield return null; }
+        playerskill02.value = 0f; isPlayerSkill02 = false;
+    }
+    // 대걸레
+    public void StartSkill03Cooldown()
+    {
+        if (isPlayerSkill03) return;
+        isPlayerSkill03 = true;
+        StartCoroutine(Skill03CooldownCoroutine());
+    }
+
+    private IEnumerator Skill03CooldownCoroutine()
+    {
+        float duration = SkillTime;
+        float currentTime = duration;
+        playerskill03.maxValue = duration;
+        while (currentTime > 0f) { currentTime -= Time.deltaTime; playerskill03.value = currentTime; yield return null; }
+        playerskill03.value = 0f; isPlayerSkill03 = false;
+    }
+    // 식판
+    public void StartAttackCooldown(float duration) // 연결 완료
+    {
+        if (isPlayerAttact) return;
+        isPlayerAttact = true;
+        StartCoroutine(AttackCooldownCoroutine(duration));
     }
 
     private IEnumerator AttackCooldownCoroutine(float duration)
     {
-        float current = duration;
+        float currentTime = duration;
         playerAttack.maxValue = duration;
-        while (current > 0) { current -= Time.deltaTime; playerAttack.value = current; yield return null; }
-        playerAttack.value = 0; isPlayerAttact = false;
+        while (currentTime > 0f) { currentTime -= Time.deltaTime; playerAttack.value = currentTime; yield return null; }
+        playerAttack.value = 0f; isPlayerAttact = false;
     }
 }

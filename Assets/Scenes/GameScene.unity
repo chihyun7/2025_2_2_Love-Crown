@@ -7431,6 +7431,7 @@ MonoBehaviour:
   playerAttack: {fileID: 658432676}
   playerskill02: {fileID: 0}
   playerskill03: {fileID: 1428395200}
+  SkillTime: 30
   localPlayerInventory: {fileID: 0}
   localPlayerQuestLog: {fileID: 0}
   localPlayerMovement: {fileID: 0}
