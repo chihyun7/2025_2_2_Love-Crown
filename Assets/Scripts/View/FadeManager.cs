@@ -19,7 +19,7 @@ public class FadeManager : MonoBehaviour
             photonManager = FindAnyObjectByType<PhotonManager>();
         }
 
-        if (photonManager != null && photonManager.isMasterServer)
+        if (photonManager != null && photonManager.isMaster)
         {
             StartFadeIn();
             return;
@@ -27,11 +27,6 @@ public class FadeManager : MonoBehaviour
         }
         else
             Debug.Log("isMasterServer가 flase 입니다.");      
-    }
-
-    public void StartFadeOut()
-    {
-        StartCoroutine(Fade(1, fadeDuration));
     }
 
     public void StartFadeIn()
