@@ -66,6 +66,9 @@ MonoBehaviour:
     lines:
     - isPlayer: 0
       sentence: "\uC815\uB9D0 \uACE0\uB9C8\uC6CC!"
+      choices: []
+    - isPlayer: 1
+      sentence: "\uB2E4\uC74C\uC5D4 \uC783\uC5B4\uBC84\uB9AC\uC9C0\uB9C8!"
       choices:
       - choiceText: "\uB2E4\uC74C\uC5D4 \uC783\uC5B4\uBC84\uB9AC\uC9C0\uB9C8!"
         likabilityChange: 0

@@ -5,20 +5,24 @@ using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 using System.Collections;
 using System.Text;
+using TMPro;
 
 public class PhotonManager : MonoBehaviourPunCallbacks
 {
-    [Header("Photon 설정")]
     public string gameVersion = "1.0";
 
-    [Header("UI 연결")]
     public InputField playerInput;
     public InputField createNameInput;
     public Text statusText;
-
+    public GameObject LobbyPanel;
+    public GameObject GameInUI;
+    public TextMeshProUGUI roomNameText;
+    public bool isMaster;
     public GameObject gamestartButton;
     private StringBuilder sb = new StringBuilder();
     private static PhotonManager Instance;
+    private bool isCreateRoomUI;
+    private bool isLobbyUIPanel;
 
     private void Awake()
     {
@@ -46,28 +50,24 @@ public class PhotonManager : MonoBehaviourPunCallbacks
         ConnectToPhoton();
     }
 
-
     public void ConnectToPhoton()
     {
         if (!PhotonNetwork.IsConnected)
         {
             PhotonNetwork.GameVersion = gameVersion;
             PhotonNetwork.ConnectUsingSettings();
-            statusText.text = "\n서버에 연결 중...";
         }
         else
         {
             PhotonNetwork.JoinLobby();
-            statusText.text = "\n로비로 진입...";
         }
     }
 
     public override void OnConnectedToMaster()
     {
-        statusText.text = "마스터 서버 연결 성공!";
         PhotonNetwork.JoinLobby();
+        isMaster = true;
     }
-
 
     public override void OnDisconnected(DisconnectCause cause)
     {
@@ -75,14 +75,13 @@ public class PhotonManager : MonoBehaviourPunCallbacks
         ConnectToPhoton();
     }
 
-
     public void CreateRoom()
     {
         playerName();
 
         if (string.IsNullOrEmpty(createNameInput.text))
         {
-            statusText.text = "방 이름을 입력하세요.";
+            Debug.Log("방 이름을 입력하세요.");
             return;
         }
 
@@ -94,7 +93,7 @@ public class PhotonManager : MonoBehaviourPunCallbacks
         };
 
         PhotonNetwork.CreateRoom(createNameInput.text, options);
-        statusText.text = $"방 생성 시도: {createNameInput.text}";
+        Debug.Log($"방 생성 시도: {createNameInput.text}");
         Debug.Log(PhotonNetwork.NickName);
     }
 
@@ -103,13 +102,13 @@ public class PhotonManager : MonoBehaviourPunCallbacks
         if (playerInput != null && !string.IsNullOrEmpty(playerInput.text))
         {
             PhotonNetwork.NickName = playerInput.text;
-            statusText.text = $"닉네임 설정: {PhotonNetwork.NickName}";
+            Debug.Log($"닉네임 설정: {PhotonNetwork.NickName}");
 
         }
         else
         {
             PhotonNetwork.NickName = $"Player_{Random.Range(1000, 9999)}";
-            statusText.text = $"닉네임 미입력, 자동 설정: {PhotonNetwork.NickName}";
+            Debug.Log($"닉네임 미입력, 자동 설정: {PhotonNetwork.NickName}");
         }
     }
 
@@ -119,33 +118,39 @@ public class PhotonManager : MonoBehaviourPunCallbacks
 
         if (string.IsNullOrEmpty(createNameInput.text))
         {
-            statusText.text = "방 이름을 입력하세요.";
+            Debug.Log("방 이름을 입력하세요.");
             return;
         }
 
         PhotonNetwork.JoinRoom(createNameInput.text);
-        statusText.text = $"방 입장 시도: {createNameInput.text}";
+        Debug.Log($"방 입장 시도: {createNameInput.text}");
     }
 
     public override void OnJoinRoomFailed(short returnCode, string message)
     {
-        statusText.text = "방 입장 실패: " + message;
+        Debug.Log("방 입장 실패: " + message);
     }
 
     public override void OnCreateRoomFailed(short returnCode, string message)
     {
-        statusText.text = "방 생성 실패: " + message;
+        Debug.Log("방 생성 실패: " + message);
     }
 
     public override void OnJoinedRoom()
     {
-
-        statusText.text = "방 입장 성공! 플레이어 목록 업데이트 중...";
-
+        Debug.Log("방 입장 성공! 플레이어 목록 업데이트 중...");
+        LobbyPanel.gameObject.SetActive(true);
 
         PlayerText();
+        if (!isLobbyUIPanel)
+        {
+            LobbyPanel.gameObject.SetActive(true);
+            roomNameText.text = PhotonNetwork.CurrentRoom.Name;
+            isLobbyUIPanel = true;
+            isCreateRoomUI = false;
+        }
 
-        if (PhotonNetwork.IsMasterClient)
+        if (PhotonNetwork.IsMasterClient && PhotonNetwork.CurrentRoom.PlayerCount == 2)
         {
             if (gamestartButton != null) gamestartButton.gameObject.SetActive(true);
         }
@@ -153,11 +158,10 @@ public class PhotonManager : MonoBehaviourPunCallbacks
 
     public override void OnPlayerEnteredRoom(Player newPlayer)
     {
-        statusText.text = $"{newPlayer.NickName}님이 입장했습니다.";
-
+        Debug.Log($"{newPlayer.NickName}님이 입장했습니다.");
         PlayerText();
 
-        if (PhotonNetwork.IsMasterClient && PhotonNetwork.CurrentRoom.PlayerCount == PhotonNetwork.CurrentRoom.MaxPlayers)
+        if (PhotonNetwork.IsMasterClient && PhotonNetwork.CurrentRoom.PlayerCount == 2)
         {
             if (gamestartButton != null) gamestartButton.gameObject.SetActive(true);
         }
@@ -167,10 +171,13 @@ public class PhotonManager : MonoBehaviourPunCallbacks
     {
         Debug.Log($"서버 연결이 {otherPlayer.NickName}님이 퇴장했습니다.");
         PlayerText();
+    }
 
-        if (!PhotonNetwork.IsMasterClient && gamestartButton != null)
+    public override void OnMasterClientSwitched(Player newMasterClient)
+    {
+        if (newMasterClient.IsLocal && PhotonNetwork.CurrentRoom.PlayerCount == 2)
         {
-            if (PhotonNetwork.LocalPlayer.IsMasterClient)
+            if (gamestartButton != null)
             {
                 gamestartButton.gameObject.SetActive(true);
             }
@@ -200,14 +207,29 @@ public class PhotonManager : MonoBehaviourPunCallbacks
         statusText.text = sb.ToString();
     }
 
+    public void OpenCreateRoomUIButton()
+    {
+        if (!isCreateRoomUI)
+        {
+            GameInUI.gameObject.SetActive(true);
+            isCreateRoomUI = true;
+            isLobbyUIPanel = false;
+        }
+        else
+        {
+            GameInUI.gameObject.SetActive(false);
+
+        }
+    }
+
     public void GameStartButton()
     {
         if (PhotonNetwork.IsMasterClient)
         {
             PhotonNetwork.LoadLevel("GameScene");
+            isLobbyUIPanel = false;
         }
     }
-
 
     public override void OnLeftRoom()
     {
@@ -259,19 +281,36 @@ public class PhotonManager : MonoBehaviourPunCallbacks
             yield break;
         }
 
-        // 4. 플레이어 스폰
-        int playerIndex = PhotonNetwork.LocalPlayer.ActorNumber - 1;
-        Vector3 spawnPos = PlayerSpawnManager.instance.GetSpawnPosition(playerIndex);
-        GameObject player = PhotonNetwork.Instantiate("Player", spawnPos, Quaternion.identity);
+       
+        int actorNumber = PhotonNetwork.LocalPlayer.ActorNumber;
+        string prefabName = "";
 
-        if (player == null)
+        if (actorNumber == 1)
         {
-            Debug.LogError("PlayerPrefab 스폰 실패! Resources 폴더와 이름을 확인하세요.");
+            prefabName = "Player1Prefab";
+        }
+        else if (actorNumber == 2)
+        {
+            prefabName = "Player2Prefab"; 
         }
         else
         {
-            Debug.Log($"네트워크 플레이어 오브젝트 생성 완료! 스폰 위치: {spawnPos}");
+            Debug.LogError($"ActorNumber {actorNumber}에 해당하는 프리팹이 정의되지 않았습니다. 현재는 1번과 2번만 지원합니다.");
+            yield break;
+        }
+
+        int playerIndex = actorNumber - 1;
+        Vector3 spawnPos = PlayerSpawnManager.instance.GetSpawnPosition(playerIndex);
+
+        GameObject player = PhotonNetwork.Instantiate(prefabName, spawnPos, Quaternion.identity);
+
+        if (player == null)
+        {
+            Debug.LogError($"{prefabName} 스폰 실패! Resources 폴더와 이름을 확인하세요.");
+        }
+        else
+        {
+            Debug.Log($"네트워크 플레이어 오브젝트 생성 완료! 프리팹: {prefabName}, 스폰 위치: {spawnPos}");
         }
     }
-
 }

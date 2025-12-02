@@ -59,6 +59,9 @@ MonoBehaviour:
     lines:
     - isPlayer: 0
       sentence: "\uB9C8\uCE68 \uBC30\uACE0\uD320\uB294\uB370 \uACE0\uB9C8\uC6CC!"
+      choices: []
+    - isPlayer: 1
+      sentence: "\uBC25\uC740 \uAF2D \uCC59\uACA8 \uBA39\uC5B4."
       choices:
       - choiceText: "\uBC25\uC740 \uAF2D \uCC59\uACA8 \uBA39\uC5B4."
         likabilityChange: 0
