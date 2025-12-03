@@ -118,37 +118,24 @@ public class GameManager : MonoBehaviourPunCallbacks
             return;
         }
 
-        // 2) 상자 열림 상태 동기화 (모든 클라)
+        // 2) 상자 열림 상태 동기화
         chest.photonView.RPC("RpcSetChestState", RpcTarget.All, true);
-        Debug.Log("[GameManager] 상자 열림 상태를 모든 클라이언트에 동기화했습니다.");
 
-        // 3) 보상 아이템 결정
+        // 3) 보상 아이템 지급
         string rewardItemID = GetRandomRewardFromChest(chest);
-        if (string.IsNullOrEmpty(rewardItemID))
+        if (!string.IsNullOrEmpty(rewardItemID))
         {
-            Debug.LogWarning("[GameManager] rewardItemIDs가 비어 있어 보상을 지급하지 않았습니다.");
-        }
-        else
-        {
-            // 4) 보상 받을 플레이어의 Inventory 찾기
             Inventory playerInventory = FindPlayerInventory(playerActorNumber);
-
-            if (playerInventory != null && playerInventory.pv != null)
+            if (playerInventory != null)
             {
-                // 퀘스트 보상과 동일한 패턴: RpcTarget.All 로 해당 인벤토리 인스턴스에만 적용
                 playerInventory.pv.RPC("RpcAddItem", RpcTarget.All, rewardItemID, 1);
-
-                Debug.Log($"[GameManager] Player {playerActorNumber}에게 상자 보상 지급: {rewardItemID}");
-            }
-            else
-            {
-                Debug.LogWarning("[GameManager] 대상 플레이어의 Inventory를 찾지 못했습니다. 보상 지급 실패.");
             }
         }
 
-        // 5) 상자 리스폰 루틴 시작 (마스터에서만 동작)
-        chest.StartRespawnOnMaster();
+        // 4) 상자 영구 삭제
+        PhotonNetwork.Destroy(chest.gameObject);
     }
+
 
     // 상자의 rewardItemIDs 리스트에서 확률 기반으로 1개 선택
     private string GetRandomRewardFromChest(GiftChest chest)
