@@ -461,7 +461,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   rewardItemIDs:
   - Item_A
-  - Item_B
   - Item_C
   - Item_D
   - Item_E
