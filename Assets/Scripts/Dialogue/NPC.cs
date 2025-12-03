@@ -55,26 +55,23 @@ public class NPC : MonoBehaviourPun
             if (col != null)
                 npcHeight = col.bounds.size.y;
 
-            nameCanvasInstance.transform.localPosition = new Vector3(0, npcHeight + 0.5f, 0);
+            nameCanvasInstance.transform.localPosition = new Vector3(0, 1.7f, 0);
             nameCanvasInstance.transform.localRotation = Quaternion.identity;
-            nameCanvasInstance.transform.localScale = Vector3.one * 0.008f;
+            nameCanvasInstance.transform.localScale = Vector3.one * 0.004f;
 
-            nameText = nameCanvasInstance.GetComponentInChildren<TextMeshProUGUI>();
+            nameText = nameCanvasInstance.transform.Find("Canvas/NameText")?.GetComponent<TextMeshProUGUI>();
+
             if (nameText != null)
-            {
                 nameText.text = npcName;
-                nameText.alignment = TextAlignmentOptions.Center;
-            }
             else
-            {
                 Debug.LogWarning($"[NPC] {npcName} 이름 텍스트를 찾을 수 없습니다!");
-            }
         }
         else
         {
             Debug.LogWarning($"[NPC] {npcName}의 NameCanvasPrefab이 비어있습니다!");
         }
     }
+
 
 
     void Update()
@@ -301,17 +298,25 @@ public class NPC : MonoBehaviourPun
         }
     }
 
-    void LateUpdate()
+void LateUpdate()
+{
+    if (nameCanvasInstance != null)
     {
-        if (nameCanvasInstance != null)
+        Camera cam = Camera.main;
+        if (cam != null)
         {
-            var cam = Camera.main;
-            if (cam != null)
-                nameCanvasInstance.transform.LookAt(nameCanvasInstance.transform.position + cam.transform.forward);
+            nameCanvasInstance.transform.LookAt(
+                nameCanvasInstance.transform.position + cam.transform.rotation * Vector3.forward,
+                cam.transform.rotation * Vector3.up
+            );
         }
     }
+}
 
-    [PunRPC]
+
+
+
+[PunRPC]
     public void RpcSetCharmOwner(int ownerActorNumber, string ownerName)
     {
         charmedByActorNumber = ownerActorNumber;
