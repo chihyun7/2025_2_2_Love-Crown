@@ -61810,7 +61810,7 @@ MonoBehaviour:
   timerText: {fileID: 2098031501}
   resultPanel: {fileID: 213796434}
   resultText: {fileID: 1994916005}
-  matchDuration: 180
+  matchDuration: 300
 --- !u!4 &658917799
 Transform:
   m_ObjectHideFlags: 0
@@ -187902,7 +187902,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 15:00
+  m_text: 5:00
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 9975ad88ff2d0c04eb8ba6a0d0f4fef6, type: 2}
   m_sharedMaterial: {fileID: -6982761501913337782, guid: 9975ad88ff2d0c04eb8ba6a0d0f4fef6,
@@ -187912,8 +187912,8 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4294963882
-  m_fontColor: {r: 0.6650944, g: 0.95091546, b: 1, a: 1}
+    rgba: 4294949110
+  m_fontColor: {r: 0.9647059, g: 0.72156864, b: 1, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
   m_fontColorGradient:
