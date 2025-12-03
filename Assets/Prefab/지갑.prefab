@@ -12,8 +12,9 @@ GameObject:
   - component: {fileID: 1743394127808508369}
   - component: {fileID: 9063024617396202917}
   - component: {fileID: 621327195520160945}
+  - component: {fileID: 4595980856529083417}
   m_Layer: 0
-  m_Name: wallet
+  m_Name: "\uC9C0\uAC11"
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -96,5 +97,27 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 041f62415b1b9af48a2230e55f9869f4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  itemID: wallet
+  itemID: Item_F
   pickupDistance: 2
+--- !u!114 &4595980856529083417
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1006662527780083791}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: aa584fbee541324448dd18d8409c7a41, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  ObservedComponentsFoldoutOpen: 1
+  Group: 0
+  prefixField: -1
+  Synchronization: 3
+  OwnershipTransfer: 0
+  observableSearch: 2
+  ObservedComponents: []
+  sceneViewId: 0
+  InstantiationId: 0
+  isRuntimeInstantiated: 0
