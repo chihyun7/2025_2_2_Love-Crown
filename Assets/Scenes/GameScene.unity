@@ -3677,6 +3677,37 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 50269134}
   m_Mesh: {fileID: -5788312993497142011, guid: b38eea2dcb1a27d4cac1dddb4b88cfa0, type: 3}
+--- !u!1 &51856002
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 51856003}
+  m_Layer: 0
+  m_Name: ChestSpawnPoint13
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &51856003
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 51856002}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0.70765793, z: -0, w: 0.7065553}
+  m_LocalPosition: {x: 39.355125, y: 5.79725, z: 6.6559467}
+  m_LocalScale: {x: 1.0748378, y: 1.0748378, z: 1.0748378}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 662522860}
+  m_LocalEulerAnglesHint: {x: 0, y: -90.089, z: 0}
 --- !u!1 &53186202
 GameObject:
   m_ObjectHideFlags: 0
@@ -9080,7 +9111,7 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 0.013669313, y: 0.020000001, z: 0.0395795}
+  m_Size: {x: 0.01, y: 0.02, z: 0.0395795}
   m_Center: {x: -0.007422922, y: 0.00000010447759, z: -0.009790171}
 --- !u!1 &132228662
 GameObject:
@@ -30254,6 +30285,37 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 470330494}
   m_Mesh: {fileID: -5788312993497142011, guid: b38eea2dcb1a27d4cac1dddb4b88cfa0, type: 3}
+--- !u!1 &470897684
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 470897685}
+  m_Layer: 0
+  m_Name: ChestSpawnPoint11
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &470897685
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 470897684}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0.70765793, z: -0, w: 0.7065553}
+  m_LocalPosition: {x: 6.9971275, y: 5.79725, z: -4.2290535}
+  m_LocalScale: {x: 1.0748378, y: 1.0748378, z: 1.0748378}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 662522860}
+  m_LocalEulerAnglesHint: {x: 0, y: -90.089, z: 0}
 --- !u!1 &471263424
 GameObject:
   m_ObjectHideFlags: 0
@@ -32142,6 +32204,37 @@ Transform:
   - {fileID: 1482978092}
   m_Father: {fileID: 1846596078}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &511466820
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 511466821}
+  m_Layer: 0
+  m_Name: ChestSpawnPoint14
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &511466821
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 511466820}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0.70765793, z: -0, w: 0.7065553}
+  m_LocalPosition: {x: 40.51113, y: 5.79725, z: 19.594946}
+  m_LocalScale: {x: 1.0748378, y: 1.0748378, z: 1.0748378}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 662522860}
+  m_LocalEulerAnglesHint: {x: 0, y: -90.089, z: 0}
 --- !u!1 &512962068
 GameObject:
   m_ObjectHideFlags: 0
@@ -34735,8 +34828,8 @@ Transform:
   m_GameObject: {fileID: 565089353}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -96.86, y: 6.141, z: -12.46}
-  m_LocalScale: {x: 1.1592, y: 1, z: 1}
+  m_LocalPosition: {x: -96.86, y: 6.21, z: -12.53}
+  m_LocalScale: {x: 1.1592, y: 1.2365, z: 2.2299}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 1543224949}
@@ -34756,7 +34849,7 @@ BoxCollider:
     serializedVersion: 2
     m_Bits: 0
   m_LayerOverridePriority: 0
-  m_IsTrigger: 0
+  m_IsTrigger: 1
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
@@ -41168,7 +41261,14 @@ MonoBehaviour:
   - {fileID: 1911320836}
   - {fileID: 7327316}
   - {fileID: 1782584841}
-  chestCount: 8
+  - {fileID: 1497493873}
+  - {fileID: 1618717872}
+  - {fileID: 470897685}
+  - {fileID: 982465983}
+  - {fileID: 51856003}
+  - {fileID: 511466821}
+  - {fileID: 1875455550}
+  chestCount: 15
 --- !u!4 &662522860
 Transform:
   m_ObjectHideFlags: 0
@@ -41190,6 +41290,13 @@ Transform:
   - {fileID: 1911320836}
   - {fileID: 7327316}
   - {fileID: 1782584841}
+  - {fileID: 1875455550}
+  - {fileID: 511466821}
+  - {fileID: 51856003}
+  - {fileID: 982465983}
+  - {fileID: 470897685}
+  - {fileID: 1618717872}
+  - {fileID: 1497493873}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &664156112
@@ -57444,6 +57551,37 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 979613864}
   m_Mesh: {fileID: 3414499066401282279, guid: b38eea2dcb1a27d4cac1dddb4b88cfa0, type: 3}
+--- !u!1 &982465982
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 982465983}
+  m_Layer: 0
+  m_Name: ChestSpawnPoint12
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &982465983
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 982465982}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0.70765793, z: -0, w: 0.7065553}
+  m_LocalPosition: {x: 23.695127, y: 5.79725, z: -5.1140532}
+  m_LocalScale: {x: 1.0748378, y: 1.0748378, z: 1.0748378}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 662522860}
+  m_LocalEulerAnglesHint: {x: 0, y: -90.089, z: 0}
 --- !u!1 &986519299
 GameObject:
   m_ObjectHideFlags: 0
@@ -85943,6 +86081,37 @@ Transform:
   - {fileID: 861952524}
   m_Father: {fileID: 401882115}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1497493872
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1497493873}
+  m_Layer: 0
+  m_Name: ChestSpawnPoint9
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1497493873
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1497493872}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0.70765793, z: -0, w: 0.7065553}
+  m_LocalPosition: {x: 6.882128, y: 5.79725, z: 18.001947}
+  m_LocalScale: {x: 1.0748378, y: 1.0748378, z: 1.0748378}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 662522860}
+  m_LocalEulerAnglesHint: {x: 0, y: -90.089, z: 0}
 --- !u!1 &1497511353
 GameObject:
   m_ObjectHideFlags: 0
@@ -92448,6 +92617,37 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1616436085}
   m_Mesh: {fileID: -8864338048434941162, guid: b38eea2dcb1a27d4cac1dddb4b88cfa0, type: 3}
+--- !u!1 &1618717871
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1618717872}
+  m_Layer: 0
+  m_Name: ChestSpawnPoint10
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1618717872
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1618717871}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0.70765793, z: -0, w: 0.7065553}
+  m_LocalPosition: {x: 9.960128, y: 5.79725, z: 20.170946}
+  m_LocalScale: {x: 1.0748378, y: 1.0748378, z: 1.0748378}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 662522860}
+  m_LocalEulerAnglesHint: {x: 0, y: -90.089, z: 0}
 --- !u!1 &1619724431
 GameObject:
   m_ObjectHideFlags: 0
@@ -107069,6 +107269,37 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1874476666}
   m_Mesh: {fileID: 9078647314086403569, guid: b38eea2dcb1a27d4cac1dddb4b88cfa0, type: 3}
+--- !u!1 &1875455549
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1875455550}
+  m_Layer: 0
+  m_Name: ChestSpawnPoint15
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1875455550
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1875455549}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0.70765793, z: -0, w: 0.7065553}
+  m_LocalPosition: {x: -31.964872, y: 5.79725, z: 5.7759457}
+  m_LocalScale: {x: 1.0748378, y: 1.0748378, z: 1.0748378}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 662522860}
+  m_LocalEulerAnglesHint: {x: 0, y: -90.089, z: 0}
 --- !u!1 &1877472444
 GameObject:
   m_ObjectHideFlags: 0
@@ -176067,6 +176298,51 @@ PrefabInstance:
         type: 3}
       propertyPath: m_LocalPosition.z
       value: 76.67898
+      objectReference: {fileID: 0}
+    - target: {fileID: 2794712113549648786, guid: 381ee39e4c2927f4c85f4e124afbdfe3,
+        type: 3}
+      propertyPath: m_LocalScale.x
+      value: -216.07234
+      objectReference: {fileID: 0}
+    - target: {fileID: 2794712113549648786, guid: 381ee39e4c2927f4c85f4e124afbdfe3,
+        type: 3}
+      propertyPath: m_LocalScale.z
+      value: -36.946426
+      objectReference: {fileID: 0}
+    - target: {fileID: 2794712113549648786, guid: 381ee39e4c2927f4c85f4e124afbdfe3,
+        type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -5.601
+      objectReference: {fileID: 0}
+    - target: {fileID: 2794712113549648786, guid: 381ee39e4c2927f4c85f4e124afbdfe3,
+        type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 3.875
+      objectReference: {fileID: 0}
+    - target: {fileID: 2794712113549648786, guid: 381ee39e4c2927f4c85f4e124afbdfe3,
+        type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 3.01
+      objectReference: {fileID: 0}
+    - target: {fileID: 3141721845270467140, guid: 381ee39e4c2927f4c85f4e124afbdfe3,
+        type: 3}
+      propertyPath: m_LocalScale.z
+      value: -57.343044
+      objectReference: {fileID: 0}
+    - target: {fileID: 3141721845270467140, guid: 381ee39e4c2927f4c85f4e124afbdfe3,
+        type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -3.45
+      objectReference: {fileID: 0}
+    - target: {fileID: 3141721845270467140, guid: 381ee39e4c2927f4c85f4e124afbdfe3,
+        type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 5.16
+      objectReference: {fileID: 0}
+    - target: {fileID: 3141721845270467140, guid: 381ee39e4c2927f4c85f4e124afbdfe3,
+        type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 3.01
       objectReference: {fileID: 0}
     - target: {fileID: 3158021888652056813, guid: 381ee39e4c2927f4c85f4e124afbdfe3,
         type: 3}
