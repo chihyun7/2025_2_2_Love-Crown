@@ -22,7 +22,7 @@ MonoBehaviour:
     targetNPCName: 
     targetLikability: 0
   rewardGold: 0
-  rewardLikability: 100
+  rewardLikability: 200
   rewardItem: {fileID: 0}
   rewardItemQuantity: 0
   startDialogue:
