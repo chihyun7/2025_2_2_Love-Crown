@@ -24,7 +24,7 @@ MonoBehaviour:
   rewardGold: 0
   rewardLikability: 100
   rewardItem: {fileID: 0}
-  rewardItemQuantity: 0
+  rewardItemQuantity: 1
   startDialogue:
     name: "\uAC8C\uC784\uC744 \uC88B\uC544\uD558\uB294 \uC18C\uB144"
     lines:
@@ -69,7 +69,4 @@ MonoBehaviour:
       choices: []
     - isPlayer: 1
       sentence: "\uB2E4\uC74C\uC5D4 \uC783\uC5B4\uBC84\uB9AC\uC9C0\uB9C8!"
-      choices:
-      - choiceText: "\uB2E4\uC74C\uC5D4 \uC783\uC5B4\uBC84\uB9AC\uC9C0\uB9C8!"
-        likabilityChange: 0
-        action: 0
+      choices: []

@@ -22,9 +22,9 @@ MonoBehaviour:
     targetNPCName: 
     targetLikability: 0
   rewardGold: 0
-  rewardLikability: 100
+  rewardLikability: 200
   rewardItem: {fileID: 0}
-  rewardItemQuantity: 0
+  rewardItemQuantity: 1
   startDialogue:
     name: "\uCCB4\uC721\uC744 \uC88B\uC544\uD558\uB294 \uD6C4\uBC30"
     lines:

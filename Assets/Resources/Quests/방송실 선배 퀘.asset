@@ -24,7 +24,7 @@ MonoBehaviour:
   rewardGold: 0
   rewardLikability: 200
   rewardItem: {fileID: 0}
-  rewardItemQuantity: 0
+  rewardItemQuantity: 1
   startDialogue:
     name: "\uBC29\uC1A1\uC2E4 \uC120\uBC30"
     lines:
