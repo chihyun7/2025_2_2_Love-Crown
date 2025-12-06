@@ -285,6 +285,9 @@ public class NPC : MonoBehaviourPun
             localPlayerInventory = other.GetComponent<Inventory>();
             localPlayerQuestLog = other.GetComponent<PlayerQuestLog>();
         }
+
+        if (UIManager.instance != null)
+            UIManager.instance.ShowInteractionText($"대화하기 [E]");
     }
 
     private void OnTriggerExit(Collider other)
@@ -296,6 +299,9 @@ public class NPC : MonoBehaviourPun
             localPlayerInventory = null;
             localPlayerQuestLog = null;
         }
+
+        if (UIManager.instance != null)
+            UIManager.instance.HideInteractionText();
     }
 
 void LateUpdate()
@@ -337,6 +343,8 @@ void LateUpdate()
 
         Debug.Log($"[NPC Sync] '{npcName}'이(가) {charmedPlayerName}에게 귀속됨!");
     }
+
+
 
 
 

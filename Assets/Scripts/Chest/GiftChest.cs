@@ -61,6 +61,9 @@ public class GiftChest : MonoBehaviourPun
             playerIsClose = true;
             localPlayerInventory = other.GetComponent<Inventory>();
         }
+
+        if (!isOpened && UIManager.instance != null)
+            UIManager.instance.ShowInteractionText("상자 열기 [E]");
     }
 
     private void OnTriggerExit(Collider other)
@@ -71,6 +74,9 @@ public class GiftChest : MonoBehaviourPun
             playerIsClose = false;
             localPlayerInventory = null;
         }
+
+        if (UIManager.instance != null)
+            UIManager.instance.HideInteractionText();
     }
 
     void UpdateVisual()
@@ -85,6 +91,14 @@ public class GiftChest : MonoBehaviourPun
     {
         isOpened = opened;
         UpdateVisual();
+
+        if (opened)
+        {
+            if (playerIsClose && UIManager.instance != null)
+            {
+                UIManager.instance.HideInteractionText();
+            }
+        }
     }
 
     // 마스터에서만 리스폰 코루틴 돌림

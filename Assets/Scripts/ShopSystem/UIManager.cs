@@ -44,6 +44,10 @@ public class UIManager : MonoBehaviour
     public bool isPlayerSkill02;
     public bool isPlayerSkill03;
 
+    [Header("Interaction UI")]
+    public GameObject interactionPanel;
+    public TextMeshProUGUI interactionText;
+
     void Awake()
     {
         if (instance == null) instance = this;
@@ -86,6 +90,23 @@ public class UIManager : MonoBehaviour
         }
 
         Debug.Log($"[UIManager] 플레이어 등록 완료: {playerObj.name}");
+    }
+
+    public void ShowInteractionText(string message)
+    {
+        if (interactionPanel != null && interactionText != null)
+        {
+            interactionText.text = message;
+            interactionPanel.SetActive(true);
+        }
+    }
+
+    public void HideInteractionText()
+    {
+        if (interactionPanel != null)
+        {
+            interactionPanel.SetActive(false);
+        }
     }
 
     public void UpdateGoldText(int currentGold)
