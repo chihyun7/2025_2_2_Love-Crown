@@ -80,6 +80,11 @@ public class NPC : MonoBehaviourPun
 
         if (playerIsClose && localPlayerInventory != null && Input.GetKeyDown(KeyCode.E) && !DialogueManager.IsDialogueActive)
         {
+            if (UIManager.instance != null)
+            {
+                UIManager.instance.HideInteractionText();
+            }
+
             if (CheckForQuestCompletion()) return;
 
             if (RequestGiftInteraction()) return;
