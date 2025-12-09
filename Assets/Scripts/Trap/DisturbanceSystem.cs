@@ -27,7 +27,6 @@ public class DisturbanceSystem : MonoBehaviourPunCallbacks
         public int UseCount = 3;
     }
 
-
     private void Awake()
     {
         if (Instance == null)
@@ -78,7 +77,6 @@ public class DisturbanceSystem : MonoBehaviourPunCallbacks
 
         PlayerState state = playerStates[localPlayer.ActorNumber];
 
-
         if (!state.IsUseItem)
         {
             Player[] playerlist = PhotonNetwork.PlayerList;
@@ -89,9 +87,9 @@ public class DisturbanceSystem : MonoBehaviourPunCallbacks
             {
                 pv.RPC("RpcActivateEffectForTarget", targetPlayer, localPlayer.ActorNumber);
 
-           
                 if (uiManager != null)
                 {
+                    uiManager.SkillTime = COOLDOWN_DURATION;
                     uiManager.StartSkill01Cooldown();
                 }
 

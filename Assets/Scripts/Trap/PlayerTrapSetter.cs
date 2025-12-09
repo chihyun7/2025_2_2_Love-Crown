@@ -5,11 +5,11 @@ using Photon.Pun;
 public class PlayerTrapSetter : MonoBehaviourPun
 {
     [Header("함정 프리팹 이름 (Resources 폴더)")]
-    public string fallTrapName = "BananaTrap"; // 넘어짐 함정
-    public string slowTrapName = "SlowTrap";   // 이속 감소 함정
+    public string fallTrapName = "BananaTrap";
+    public string slowTrapName = "SlowTrap";
 
     [Header("설정")]
-    public float trapCooldown = 35f; // 쿨타임
+    public float trapCooldown = 35f;
 
     private bool canUseSkill2 = true;
     private bool canUseSkill3 = true;
@@ -47,19 +47,20 @@ public class PlayerTrapSetter : MonoBehaviourPun
     {
         Vector3 spawnPos = transform.position - (transform.forward * 2.0f);
 
-        // 아래로 레이캐스트
         RaycastHit hit;
         if (Physics.Raycast(spawnPos + Vector3.up * 1f, Vector3.down, out hit, 5f))
         {
-            spawnPos.y = hit.point.y + 0.01f;  // 바닥 위로 0.01 띄우기
+            spawnPos.y = hit.point.y + 0.01f;
         }
 
         GameObject trapObj = PhotonNetwork.Instantiate(prefabName, spawnPos, Quaternion.identity);
         Debug.Log($"함정 설치 완료: {prefabName}");
 
         StartCoroutine(CooldownRoutine(skillNum));
+
         if (UIManager.instance != null)
         {
+            UIManager.instance.SkillTime = trapCooldown;
             if (skillNum == 2) UIManager.instance.StartSkill02Cooldown();
             if (skillNum == 3) UIManager.instance.StartSkill03Cooldown();
         }
