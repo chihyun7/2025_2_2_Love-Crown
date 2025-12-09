@@ -46,7 +46,13 @@ public class PlayerTrapSetter : MonoBehaviourPun
     void SpawnTrap(string prefabName, int skillNum)
     {
         Vector3 spawnPos = transform.position - (transform.forward * 2.0f);
-        spawnPos.y += 0.1f;
+
+        // 아래로 레이캐스트
+        RaycastHit hit;
+        if (Physics.Raycast(spawnPos + Vector3.up * 1f, Vector3.down, out hit, 5f))
+        {
+            spawnPos.y = hit.point.y + 0.01f;  // 바닥 위로 0.01 띄우기
+        }
 
         GameObject trapObj = PhotonNetwork.Instantiate(prefabName, spawnPos, Quaternion.identity);
         Debug.Log($"함정 설치 완료: {prefabName}");
