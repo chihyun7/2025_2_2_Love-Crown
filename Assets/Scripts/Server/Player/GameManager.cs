@@ -68,11 +68,13 @@ public class GameManager : MonoBehaviourPunCallbacks
 
     private Inventory FindPlayerInventory(int actorNumber)
     {
-        foreach (PhotonView view in FindObjectsOfType<PhotonView>())
+        foreach (Inventory inv in FindObjectsOfType<Inventory>())
         {
-            if (view.Owner != null && view.Owner.ActorNumber == actorNumber)
+            if (inv.pv != null &&
+                inv.pv.Owner != null &&
+                inv.pv.Owner.ActorNumber == actorNumber)
             {
-                return view.GetComponent<Inventory>();
+                return inv;
             }
         }
         return null;
