@@ -256,21 +256,18 @@ public class TestCharacterPlayerMoveMent : MonoBehaviourPunCallbacks, IPunObserv
         float attackDuration = 1.5f;
 
         canAttack = false;
-        currentIsAttack = true;
-        animator.SetBool(animeID_isAttack, currentIsAttack);
-
         if (photonView.IsMine && UIManager.instance != null)
         {
             UIManager.instance.StartAttackCooldown(cooldownDuration);
         }
 
+        currentIsAttack = true;
         player_AttackObject.gameObject.SetActive(true);
 
         yield return new WaitForSeconds(attackDuration);
 
         player_AttackObject.gameObject.SetActive(false);
         currentIsAttack = false;
-        animator.SetBool(animeID_isAttack, currentIsAttack);
 
         yield return new WaitForSeconds(cooldownDuration - attackDuration);
 
