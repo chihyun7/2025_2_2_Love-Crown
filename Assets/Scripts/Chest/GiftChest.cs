@@ -55,28 +55,36 @@ public class GiftChest : MonoBehaviourPun
 
     private void OnTriggerEnter(Collider other)
     {
-        PhotonView otherPv = other.GetComponent<PhotonView>();
-        if (other.CompareTag("Player") && otherPv != null && otherPv.IsMine)
+        if (other.CompareTag("Player"))
         {
-            playerIsClose = true;
-            localPlayerInventory = other.GetComponent<Inventory>();
-        }
+            PhotonView otherPv = other.GetComponent<PhotonView>();
 
-        if (!isOpened && UIManager.instance != null)
-            UIManager.instance.ShowInteractionText("상자 열기 [E]");
+            if (otherPv != null && otherPv.IsMine)
+            {
+                playerIsClose = true;
+                localPlayerInventory = other.GetComponent<Inventory>();
+
+                if (!isOpened && UIManager.instance != null)
+                    UIManager.instance.ShowInteractionText("상자 열기 [E]");
+            }
+        }
     }
 
     private void OnTriggerExit(Collider other)
     {
-        PhotonView otherPv = other.GetComponent<PhotonView>();
-        if (other.CompareTag("Player") && otherPv != null && otherPv.IsMine)
+        if (other.CompareTag("Player"))
         {
-            playerIsClose = false;
-            localPlayerInventory = null;
-        }
+            PhotonView otherPv = other.GetComponent<PhotonView>();
 
-        if (UIManager.instance != null)
-            UIManager.instance.HideInteractionText();
+            if (otherPv != null && otherPv.IsMine)
+            {
+                playerIsClose = false;
+                localPlayerInventory = null;
+
+                if (UIManager.instance != null)
+                    UIManager.instance.HideInteractionText();
+            }
+        }
     }
 
     void UpdateVisual()

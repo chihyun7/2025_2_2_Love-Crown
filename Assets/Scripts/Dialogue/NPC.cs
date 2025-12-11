@@ -283,33 +283,41 @@ public class NPC : MonoBehaviourPun
 
     private void OnTriggerEnter(Collider other)
     {
-        PhotonView otherPv = other.GetComponent<PhotonView>();
-        if (other.CompareTag("Player") && otherPv != null && otherPv.IsMine)
+        if (other.CompareTag("Player"))
         {
-            playerIsClose = true;
-            localPlayerInventory = other.GetComponent<Inventory>();
-            localPlayerQuestLog = other.GetComponent<PlayerQuestLog>();
-        }
+            PhotonView otherPv = other.GetComponent<PhotonView>();
 
-        if (UIManager.instance != null)
-            UIManager.instance.ShowInteractionText($"대화하기 [E]");
+            if (otherPv != null && otherPv.IsMine)
+            {
+                playerIsClose = true;
+                localPlayerInventory = other.GetComponent<Inventory>();
+                localPlayerQuestLog = other.GetComponent<PlayerQuestLog>();
+
+                if (UIManager.instance != null)
+                    UIManager.instance.ShowInteractionText($"대화하기 [E]");
+            }
+        }
     }
 
     private void OnTriggerExit(Collider other)
     {
-        PhotonView otherPv = other.GetComponent<PhotonView>();
-        if (other.CompareTag("Player") && otherPv != null && otherPv.IsMine)
+        if (other.CompareTag("Player"))
         {
-            playerIsClose = false;
-            localPlayerInventory = null;
-            localPlayerQuestLog = null;
-        }
+            PhotonView otherPv = other.GetComponent<PhotonView>();
 
-        if (UIManager.instance != null)
-            UIManager.instance.HideInteractionText();
+            if (otherPv != null && otherPv.IsMine)
+            {
+                playerIsClose = false;
+                localPlayerInventory = null;
+                localPlayerQuestLog = null;
+
+                if (UIManager.instance != null)
+                    UIManager.instance.HideInteractionText();
+            }
+        }
     }
 
-void LateUpdate()
+    void LateUpdate()
 {
     if (nameCanvasInstance != null)
     {
